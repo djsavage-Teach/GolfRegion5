@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tournament Live Scoring</title>
+    <title>Region 5 Live Scoring</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .active-tab { border-bottom: 4px solid #15803d; color: #15803d; }
@@ -20,7 +20,7 @@
         /* Leaderboard Grid */
         .lb-grid {
             display: grid;
-            grid-template-columns: 60px 1fr 70px 70px;
+            grid-template-columns: 50px 1fr 70px 60px;
             align-items: center;
         }
 
@@ -32,7 +32,7 @@
         }
 
         .rank-cell { text-align: left; font-weight: 900; color: #6b7280; padding-left: 10px; }
-        .name-cell { text-align: center; font-weight: 800; text-transform: uppercase; padding: 0 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .name-cell { display: flex; align-items: center; justify-content: center; font-weight: 800; text-transform: uppercase; padding: 0 10px; overflow: hidden; }
         .score-cell { text-align: center; font-weight: 900; font-style: italic; }
         .holes-cell { text-align: right; font-weight: 700; color: #9ca3af; padding-right: 10px; }
 
@@ -51,7 +51,7 @@
 
         .sub-header-labels {
             display: grid;
-            grid-template-columns: 60px 1fr 70px 70px;
+            grid-template-columns: 50px 1fr 70px 60px;
             font-size: 10px;
             font-weight: 900;
             color: #9ca3af;
@@ -75,47 +75,93 @@
         }
 
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        
+        .header-gradient {
+            background: linear-gradient(180deg, #064e3b 0%, #14532d 100%);
+        }
+
+        /* School Logo Banner */
+        .school-banner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            margin-top: 20px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .school-logo {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            border-radius: 6px;
+            background: white;
+            padding: 3px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .inline-logo {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 8px;
+            background: white;
+            padding: 1px;
+            border-radius: 3px;
+            border: 1px solid #e5e7eb;
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen font-sans text-gray-900">
 
-    <header class="bg-green-800 text-white shadow-md sticky top-0 z-50">
-        <div class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 class="text-xl font-bold tracking-tight">⛳ GOLF LIVE</h1>
-            <button onclick="refreshData()" class="p-2 hover:bg-green-700 rounded-full transition" title="Refresh Data">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-            </button>
+    <header class="header-gradient text-white shadow-xl sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-4 py-6">
+            <div class="relative flex flex-col items-center">
+                <div class="absolute right-0 top-0">
+                    <button onclick="refreshData()" class="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition-all active:scale-95" title="Refresh Data">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="flex flex-col items-center text-center w-full">
+                    <div class="flex items-center justify-center space-x-3 mb-1">
+                        <span class="text-3xl sm:text-4xl">⛳</span>
+                        <h1 class="text-3xl sm:text-5xl font-black tracking-tighter uppercase italic">Region 5</h1>
+                    </div>
+                    <span class="text-xs sm:text-sm font-bold tracking-[0.4em] text-green-300 uppercase opacity-90">Live Scoring Hub</span>
+                    
+                    <div id="school-logo-banner" class="school-banner"></div>
+                </div>
+            </div>
         </div>
-        <div class="flex justify-center bg-white text-gray-500 text-xs sm:text-sm font-bold uppercase border-b overflow-x-auto">
-            <button onclick="setView('leaderboard')" id="tab-leaderboard" class="px-4 py-4 active-tab whitespace-nowrap">Individuals</button>
-            <button onclick="setView('teams')" id="tab-teams" class="px-4 py-4 whitespace-nowrap">Teams</button>
-            <button onclick="setView('scores')" id="tab-scores" class="px-4 py-4 whitespace-nowrap">Player Scores</button>
-            <button onclick="setView('input')" id="tab-input" class="px-4 py-4 whitespace-nowrap">Enter Scores</button>
+
+        <div class="flex justify-center bg-white text-gray-500 text-xs sm:text-sm font-bold uppercase border-b shadow-sm overflow-x-auto">
+            <button onclick="setView('leaderboard')" id="tab-leaderboard" class="px-6 py-4 active-tab whitespace-nowrap">Individuals</button>
+            <button onclick="setView('teams')" id="tab-teams" class="px-6 py-4 whitespace-nowrap">Teams</button>
+            <button onclick="setView('scores')" id="tab-scores" class="px-6 py-4 whitespace-nowrap">Player Scores</button>
+            <button onclick="setView('input')" id="tab-input" class="px-6 py-4 whitespace-nowrap">Enter Scores</button>
         </div>
     </header>
 
     <main class="max-w-5xl mx-auto p-4 pb-24">
-        <!-- Individuals Leaderboard -->
+        <!-- Views -->
         <div id="view-leaderboard" class="view">
-            <div class="centered-container">
-                <div id="leaderboard-list" class="grid gap-2">
-                    <div class="flex justify-center py-20"><div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12"></div></div>
-                </div>
-            </div>
+            <div class="centered-container"><div id="leaderboard-list" class="grid gap-2"></div></div>
         </div>
 
-        <!-- Teams Leaderboard -->
         <div id="view-teams" class="view hidden">
-            <div class="centered-container">
-                <div id="teams-list" class="grid gap-2">
-                    <div class="flex justify-center py-20"><div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12"></div></div>
-                </div>
-            </div>
+            <div class="centered-container"><div id="teams-list" class="grid gap-2"></div></div>
         </div>
 
-        <!-- Player Scores -->
         <div id="view-scores" class="view hidden">
             <div class="centered-container">
                 <div class="mb-4">
@@ -132,49 +178,16 @@
             </div>
         </div>
 
-        <!-- Enter Scores -->
         <div id="view-input" class="view hidden">
             <div class="bg-white p-6 rounded-2xl shadow-xl max-w-lg mx-auto border">
                 <h2 class="text-xl font-black text-center mb-6 uppercase">Submit Group Scores</h2>
                 <div class="space-y-4">
                     <select id="groupSelect" onchange="loadGroupPlayers()" class="w-full p-4 border-2 rounded-xl bg-gray-50 font-bold">
                         <option value="">-- Select Group --</option>
-                        <option value="Group 1">Group 1</option>
-                        <option value="Group 2">Group 2</option>
-                        <option value="Group 3">Group 3</option>
-                        <option value="Group 4">Group 4</option>
-                        <option value="Group 5">Group 5</option>
-                        <option value="Group 6">Group 6</option>
-                        <option value="Group 7">Group 7</option>
-                        <option value="Group 8">Group 8</option>
-                        <option value="Group 9">Group 9</option>
-                        <option value="Group 10">Group 10</option>
-                        <option value="Group 11">Group 11</option>
-                        <option value="Group 12">Group 12</option>
-                        <option value="Group 13">Group 13</option>
-                        <option value="Group 14">Group 14</option>
-                        <option value="Group 15">Group 15</option>
-                        <option value="Group 16">Group 16</option>
+                        <option value="Group 1">Group 1</option><option value="Group 2">Group 2</option><option value="Group 3">Group 3</option><option value="Group 4">Group 4</option><option value="Group 5">Group 5</option><option value="Group 6">Group 6</option><option value="Group 7">Group 7</option><option value="Group 8">Group 8</option><option value="Group 9">Group 9</option><option value="Group 10">Group 10</option><option value="Group 11">Group 11</option><option value="Group 12">Group 12</option><option value="Group 13">Group 13</option><option value="Group 14">Group 14</option><option value="Group 15">Group 15</option><option value="Group 16">Group 16</option>
                     </select>
                     <select id="holeSelect" class="w-full p-4 border-2 rounded-xl bg-gray-50 font-bold">
-                        <option value="1">Hole 1</option>
-                        <option value="2">Hole 2</option>
-                        <option value="3">Hole 3</option>
-                        <option value="4">Hole 4</option>
-                        <option value="5">Hole 5</option>
-                        <option value="6">Hole 6</option>
-                        <option value="7">Hole 7</option>
-                        <option value="8">Hole 8</option>
-                        <option value="9">Hole 9</option>
-                        <option value="10">Hole 10</option>
-                        <option value="11">Hole 11</option>
-                        <option value="12">Hole 12</option>
-                        <option value="13">Hole 13</option>
-                        <option value="14">Hole 14</option>
-                        <option value="15">Hole 15</option>
-                        <option value="16">Hole 16</option>
-                        <option value="17">Hole 17</option>
-                        <option value="18">Hole 18</option>
+                        <option value="1">Hole 1</option><option value="2">Hole 2</option><option value="3">Hole 3</option><option value="4">Hole 4</option><option value="5">Hole 5</option><option value="6">Hole 6</option><option value="7">Hole 7</option><option value="8">Hole 8</option><option value="9">Hole 9</option><option value="10">Hole 10</option><option value="11">Hole 11</option><option value="12">Hole 12</option><option value="13">Hole 13</option><option value="14">Hole 14</option><option value="15">Hole 15</option><option value="16">Hole 16</option><option value="17">Hole 17</option><option value="18">Hole 18</option>
                     </select>
                     <div id="group-player-inputs" class="space-y-2 py-4"></div>
                     <button id="submitBtn" onclick="submitScores()" disabled class="w-full bg-green-700 text-white font-black py-5 rounded-2xl shadow-lg disabled:opacity-30 uppercase">Submit Scores</button>
@@ -185,8 +198,31 @@
     </main>
 
     <script>
-        // Updated URL provided by the user
         const DEPLOY_URL = "https://script.google.com/macros/s/AKfycbzZob3wO7GbG1G3l9mNd3TozlqQpyMe4ekgdvuJev3v1549jpm3t2ovnG9wLZ5cVwgzxw/exec";
+
+        const SCHOOLS = [
+            { name: "Box Elder", url: "https://cmsv2-assets.apptegy.net/uploads/7672/logo/9154/bee_new.png" },
+            { name: "Bonneville", url: "https://core-docs.s3.amazonaws.com/weber_school_district__ut_ar/article/image/large_b2cffc0f-68ec-428c-a650-81767d56453b.png" },
+            { name: "West Field", url: "https://assets.hometownticketing.com/clients/westfield/logos/school_logo_ebc133bd.png" },
+            { name: "Fremont", url: "https://assets.hometownticketing.com/clients/fremontathletics/logos/school_logo_c1182661.png" },
+            { name: "Northridge", url: "https://sportshub2-uploads.vnn-prod.zone/files/sites/429/2020/09/29204806/KnightVectorGraphic.png" },
+            { name: "Clearfield", url: "https://cmsv2-assets.apptegy.net/uploads/22258/file/3291122/77646c73-243c-4814-b16b-1a9a686cfc78.png" },
+            { name: "Roy", url: "https://cmsv2-assets.apptegy.net/uploads/25031/file/5081095/46ab505e-f612-4145-9e63-ec68e8782242.jpeg" }
+        ];
+
+        // Helper to get inline logo HTML based on text matching
+        function getLogoHtml(text) {
+            if (!text) return "";
+            const match = SCHOOLS.find(s => text.toUpperCase().includes(s.name.toUpperCase()));
+            return match ? `<img src="${match.url}" class="inline-logo" alt="${match.name}">` : "";
+        }
+
+        function initLogos() {
+            const banner = document.getElementById('school-logo-banner');
+            banner.innerHTML = SCHOOLS.map(school => `
+                <img src="${school.url}" alt="${school.name}" title="${school.name}" class="school-logo shadow-sm">
+            `).join('');
+        }
 
         function setView(view) {
             document.querySelectorAll('.view').forEach(el => el.classList.add('hidden'));
@@ -205,7 +241,7 @@
                 <div style="text-align: left; padding-left: 10px;">RANK</div>
                 <div style="text-align: center;">${label}</div>
                 <div style="text-align: center;">SCORE</div>
-                <div style="text-align: right; padding-right: 10px;">HOLES</div>
+                <div style="text-align: right; padding-right: 10px;">THRU</div>
             </div>
         `;
 
@@ -220,7 +256,10 @@
             return `
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 lb-grid player-item">
                     <div class="rank-cell text-lg">${rank}</div>
-                    <div class="name-cell text-lg text-gray-800">${name}</div>
+                    <div class="name-cell text-lg text-gray-800">
+                        ${getLogoHtml(name)}
+                        <span class="truncate">${name}</span>
+                    </div>
                     <div class="score-cell text-2xl ${isUnder ? 'text-red-600' : 'text-gray-800'}">${score}</div>
                     <div class="holes-cell text-sm">${holes}</div>
                 </div>
@@ -243,15 +282,10 @@
                 data.forEach((p, index) => {
                     const keys = Object.keys(p);
                     const nameVal = String(p[keys[1]] || "").trim().toUpperCase();
-                    const rankVal = String(p[keys[0]] || "").trim().toUpperCase();
-
                     if (index >= 13 || nameVal.includes("TEAM") || nameVal.includes("LEADERS")) {
-                        if (!isTeamSection && (nameVal.includes("TEAM") || index >= 13)) {
-                            isTeamSection = true;
-                        }
+                        if (!isTeamSection && (nameVal.includes("TEAM") || index >= 13)) isTeamSection = true;
                     }
-
-                    if (nameVal === "PLAYER" || nameVal === "TEAM" || rankVal === "RANK" || nameVal === "" || nameVal.includes("TEAM LEADERS")) return;
+                    if (nameVal === "PLAYER" || nameVal === "TEAM" || nameVal === "" || nameVal.includes("TEAM LEADERS")) return;
 
                     if (type === 'individual' && !isTeamSection) {
                         if (count < 10) { html += createRow(p); count++; }
@@ -260,11 +294,8 @@
                         count++;
                     }
                 });
-
-                list.innerHTML = count > 0 ? html : `<div class="p-10 text-center text-gray-400">No entries found. Check Row 15+ in spreadsheet.</div>`;
-            } catch (e) {
-                list.innerHTML = `<div class="p-6 text-center text-red-500 font-bold">Error loading data.</div>`;
-            }
+                list.innerHTML = count > 0 ? html : `<div class="p-10 text-center text-gray-400">No entries found.</div>`;
+            } catch (e) { list.innerHTML = `<div class="p-6 text-center text-red-500 font-bold">Error loading.</div>`; }
         }
 
         async function fetchPlayerScores() {
@@ -279,114 +310,73 @@
                     const name = (p[keys[2]] || "").toString().trim(); 
                     const thru = (p[keys[24]] || "0").toString().trim(); 
                     const score = (p[keys[25]] || "E").toString().trim(); 
-                    
                     if(!name || name.toUpperCase() === "PLAYER NAME" || name === "") return null;
-                    
                     const isUnder = String(score).startsWith('-');
                     
                     return `
                         <div class="p-4 hover:bg-gray-50 transition score-entry scores-grid">
-                            <span class="font-bold text-gray-800 uppercase truncate pr-2">${name}</span>
+                            <span class="font-bold text-gray-800 uppercase flex items-center truncate">
+                                ${getLogoHtml(name)}
+                                ${name}
+                            </span>
                             <span class="text-xl font-black text-center ${isUnder ? 'text-red-600' : 'text-green-700'}">${score}</span>
                             <span class="text-sm font-bold text-gray-400 text-right pr-4">${thru}</span>
                         </div>`;
                 }).filter(html => html !== null).join('');
-                
-                if (!list.innerHTML) {
-                    list.innerHTML = `<div class="p-10 text-center text-gray-400">No players found.</div>`;
-                }
-            } catch (e) { list.innerHTML = `<div class="p-10 text-center text-red-500">Failed to load scores.</div>`; }
+            } catch (e) { list.innerHTML = `<div class="p-10 text-center text-red-500">Failed to load.</div>`; }
         }
 
         async function loadGroupPlayers() {
             const groupVal = document.getElementById('groupSelect').value;
             const container = document.getElementById('group-player-inputs');
             if (!groupVal) return container.innerHTML = "";
-            
             const groupTab = groupVal.replace("Group ", "G");
-            container.innerHTML = `<div class="flex justify-center py-4"><div class="loader rounded-full border-2 border-t-2 border-gray-200 h-6 w-6"></div></div>`;
+            container.innerHTML = `<div class="flex justify-center py-4"><div class="loader border-2 h-6 w-6"></div></div>`;
             
             try {
                 const res = await fetch(`${DEPLOY_URL}?action=getGroupPlayers&groupTab=${encodeURIComponent(groupTab)}`);
                 const players = await res.json();
-                
-                if (players.error || !Array.isArray(players) || players.length === 0) {
-                    container.innerHTML = `<div class="text-gray-400 text-center text-sm py-4">No players found in this group (Rows 4-7).</div>`;
-                    return;
-                }
-                
-                // Extra strict filter for actual players (Rows 4-7 column A)
-                // This ensures "HOLE" and "PAR" never become input buttons
                 const actualPlayers = players.filter(name => {
                     if (!name) return false;
                     const n = name.toString().trim().toUpperCase();
                     return n !== "" && n !== "HOLE" && n !== "PAR" && n !== "PLAYER" && n !== "NAME";
                 });
 
-                if (actualPlayers.length === 0) {
-                    container.innerHTML = `<div class="text-gray-400 text-center text-sm py-4">No names found in Rows 4-7.</div>`;
-                    return;
-                }
-
                 container.innerHTML = actualPlayers.map(name => `
                     <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl border">
-                        <span class="font-bold text-gray-700 text-sm uppercase">${name}</span>
+                        <span class="font-bold text-gray-700 text-sm uppercase flex items-center">
+                            ${getLogoHtml(name)}
+                            ${name}
+                        </span>
                         <input type="number" data-player="${name}" placeholder="Score" class="player-score-input w-20 p-2 border rounded-lg text-center font-bold">
                     </div>
                 `).join('');
                 document.getElementById('submitBtn').disabled = false;
-            } catch (e) { container.innerHTML = `<div class="text-red-500 text-center text-xs">Error loading group.</div>`; }
+            } catch (e) { container.innerHTML = `<div class="text-red-500 text-center text-xs">Error.</div>`; }
         }
 
         async function submitScores() {
             const groupVal = document.getElementById('groupSelect').value;
-            if (!groupVal) return;
-            
             const groupTab = groupVal.replace("Group ", "G");
             const hole = document.getElementById('holeSelect').value;
             const btn = document.getElementById('submitBtn');
             const scores = {};
             let hasScores = false;
-            
             document.querySelectorAll('.player-score-input').forEach(i => { 
-                if(i.value) { 
-                    scores[i.getAttribute('data-player')] = i.value; 
-                    hasScores = true; 
-                }
+                if(i.value) { scores[i.getAttribute('data-player')] = i.value; hasScores = true; }
             });
-            
-            if (!hasScores) {
-                showStatus("Enter at least one score.", false);
-                return;
-            }
-
-            btn.disabled = true;
-            btn.innerText = "SUBMITTING...";
+            if (!hasScores) return showStatus("Enter a score.", false);
+            btn.disabled = true; btn.innerText = "SUBMITTING...";
 
             try {
-                const response = await fetch(DEPLOY_URL, { 
-                    method: 'POST', 
-                    body: JSON.stringify({ 
-                        groupTab: groupTab, 
-                        holeNum: hole, 
-                        scores: scores 
-                    }) 
-                });
-                
+                const response = await fetch(DEPLOY_URL, { method: 'POST', body: JSON.stringify({ groupTab, holeNum: hole, scores }) });
                 const result = await response.json();
-                
                 if (result.result === "success") {
                     showStatus(`✓ Hole ${hole} updated!`, true);
                     document.querySelectorAll('.player-score-input').forEach(i => i.value = '');
-                } else {
-                    showStatus("Error: " + (result.message || "Submission failed"), false);
-                }
-            } catch (e) { 
-                showStatus("Failed to submit. Check internet or Script URL.", false); 
-            } finally { 
-                btn.disabled = false; 
-                btn.innerText = "SUBMIT SCORES";
-            }
+                } else showStatus("Error.", false);
+            } catch (e) { showStatus("Failed.", false); }
+            finally { btn.disabled = false; btn.innerText = "SUBMIT SCORES"; }
         }
 
         function showStatus(msg, success) {
@@ -408,7 +398,8 @@
             if (active === 'tab-scores') fetchPlayerScores();
         }
 
-        window.onload = () => fetchLeaderboard('individual');
+        window.onload = () => { initLogos(); fetchLeaderboard('individual'); };
     </script>
 </body>
 </html>
+
