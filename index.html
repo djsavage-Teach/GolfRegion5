@@ -23,10 +23,12 @@
         
         /* Glassmorphism Header */
         .glass-header {
-            background: rgba(20, 83, 45, 0.85);
+            background-color: var(--primary-color);
+            background-image: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.4));
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: background-color 0.5s ease;
         }
 
         /* Monospace for numbers to ensure alignment */
@@ -98,14 +100,27 @@
             justify-content: center;
             align-items: center;
             flex-wrap: wrap;
-            gap: 6px;
+            gap: 8px;
             padding: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
             margin-top: 12px;
         }
         
-        .school-logo { width: 28px; height: 28px; object-fit: contain; background: white; padding: 2px; border-radius: 4px; }
+        .school-logo-btn { 
+            width: 32px; 
+            height: 32px; 
+            object-fit: contain; 
+            background: white; 
+            padding: 3px; 
+            border-radius: 6px; 
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 2px solid transparent;
+        }
+        .school-logo-btn:active { transform: scale(0.9); }
+        .school-logo-btn.active-branding { border-color: white; box-shadow: 0 0 10px rgba(255,255,255,0.5); }
+
         .inline-logo { width: 18px; height: 18px; min-width: 18px; object-fit: contain; display: inline-block; vertical-align: middle; margin-right: 4px; background: white; padding: 1px; border-radius: 3px; }
 
         /* Favorite Pinning Star */
@@ -135,7 +150,7 @@
             .rank-cell { font-size: 1rem; }
             .score-cell { font-size: 1.5rem; }
             .giant-header { font-size: 1.5rem; }
-            .school-logo { width: 36px; height: 36px; }
+            .school-logo-btn { width: 40px; height: 40px; }
         }
 
         /* Pull to refresh UI */
@@ -175,7 +190,9 @@
                     <div class="flex items-center justify-center space-x-2">
                         <h1 class="text-xl sm:text-3xl font-black tracking-tighter uppercase italic">Region 5</h1>
                     </div>
-                    <span class="text-[9px] sm:text-xs font-bold tracking-[0.3em] text-green-300 uppercase opacity-90">Live Scoring Hub</span>
+                    <span class="text-[9px] sm:text-xs font-bold tracking-[0.3em] text-white/70 uppercase">Live Scoring Hub</span>
+                    
+                    <!-- Interactive Branding Banner -->
                     <div id="school-logo-banner" class="school-banner"></div>
                 </div>
             </div>
@@ -228,27 +245,37 @@
     <script>
         const DEPLOY_URL = "https://script.google.com/macros/s/AKfycbzZob3wO7GbG1G3l9mNd3TozlqQpyMe4ekgdvuJev3v1549jpm3t2ovnG9wLZ5cVwgzxw/exec";
         let favorites = JSON.parse(localStorage.getItem('golf_favs') || '[]');
+        let currentTheme = localStorage.getItem('golf_theme') || "REGION";
 
         const SCHOOLS = [
-            { name: "BOX ELDER", url: "https://cmsv2-assets.apptegy.net/uploads/7672/logo/9154/bee_new.png", color: "#facc15" },
-            { name: "BONNEVILLE", url: "https://core-docs.s3.amazonaws.com/weber_school_district__ut_ar/article/image/large_b2cffc0f-68ec-428c-a650-81767d56453b.png", color: "#1e40af" },
-            { name: "WEST FIELD", url: "https://assets.hometownticketing.com/clients/westfield/logos/school_logo_ebc133bd.png", color: "#dc2626" },
-            { name: "FREMONT", url: "https://assets.hometownticketing.com/clients/fremontathletics/logos/school_logo_c1182661.png", color: "#1e3a8a" },
-            { name: "NORTHRIDGE", url: "https://sportshub2-uploads.vnn-prod.zone/files/sites/429/2020/09/29204806/KnightVectorGraphic.png", color: "#991b1b" },
-            { name: "CLEARFIELD", url: "https://cmsv2-assets.apptegy.net/uploads/22258/file/3291122/77646c73-243c-4814-b16b-1a9a686cfc78.png", color: "#14532d" },
-            { name: "ROY", url: "https://cmsv2-assets.apptegy.net/uploads/25031/file/5081095/46ab505e-f612-4145-9e63-ec68e8782242.jpeg", color: "#6b21a8" }
+            { id: "BOX ELDER", name: "BOX ELDER", url: "https://cmsv2-assets.apptegy.net/uploads/7672/logo/9154/bee_new.png", color: "#6b21a8" }, // Purple
+            { id: "BONNEVILLE", name: "BONNEVILLE", url: "https://core-docs.s3.amazonaws.com/weber_school_district__ut_ar/article/image/large_b2cffc0f-68ec-428c-a650-81767d56453b.png", color: "#1e3a8a" }, // Navy Blue
+            { id: "WEST FIELD", name: "WEST FIELD", url: "https://assets.hometownticketing.com/clients/westfield/logos/school_logo_ebc133bd.png", color: "#c2410c" }, // Burnt Orange
+            { id: "FREMONT", name: "FREMONT", url: "https://assets.hometownticketing.com/clients/fremontathletics/logos/school_logo_c1182661.png", color: "#2563eb" }, // Royal Blue
+            { id: "NORTHRIDGE", name: "NORTHRIDGE", url: "https://sportshub2-uploads.vnn-prod.zone/files/sites/429/2020/09/29204806/KnightVectorGraphic.png", color: "#991b1b" }, // Dark Red
+            { id: "CLEARFIELD", name: "CLEARFIELD", url: "https://cmsv2-assets.apptegy.net/uploads/22258/file/3291122/77646c73-243c-4814-b16b-1a9a686cfc78.png", color: "#15803d" }, // Green
+            { id: "ROY", name: "ROY", url: "https://cmsv2-assets.apptegy.net/uploads/25031/file/5081095/46ab505e-f612-4145-9e63-ec68e8782242.jpeg", color: "#eab308" } // Yellow
         ];
 
-        function getLogoHtml(text) {
-            const match = SCHOOLS.find(s => text.toUpperCase().includes(s.name));
-            return match ? `<img src="${match.url}" class="inline-logo shadow-sm" alt="${match.name}">` : "";
+        function setTheme(schoolId) {
+            currentTheme = schoolId;
+            localStorage.setItem('golf_theme', schoolId);
+            
+            const match = SCHOOLS.find(s => s.id === schoolId);
+            const color = match ? match.color : '#15803d'; // Default region green
+            
+            document.documentElement.style.setProperty('--primary-color', color);
+            
+            // Update active state in banner
+            document.querySelectorAll('.school-logo-btn').forEach(btn => {
+                btn.classList.toggle('active-branding', btn.dataset.id === schoolId);
+            });
         }
 
-        function updateBranding(topName) {
-            const match = SCHOOLS.find(s => topName.toUpperCase().includes(s.name));
-            if (match) {
-                document.documentElement.style.setProperty('--primary-color', match.color);
-            }
+        function getLogoHtml(text) {
+            if (!text) return "";
+            const match = SCHOOLS.find(s => text.toUpperCase().includes(s.name));
+            return match ? `<img src="${match.url}" class="inline-logo shadow-sm" alt="${match.name}">` : "";
         }
 
         function toggleFavorite(name) {
@@ -261,8 +288,15 @@
         function initLogos() {
             const banner = document.getElementById('school-logo-banner');
             banner.innerHTML = SCHOOLS.map(school => `
-                <img src="${school.url}" alt="${school.name}" class="school-logo shadow-sm border border-gray-100">
+                <img src="${school.url}" 
+                     alt="${school.name}" 
+                     data-id="${school.id}"
+                     onclick="setTheme('${school.id}')"
+                     class="school-logo-btn shadow-sm ${currentTheme === school.id ? 'active-branding' : ''}">
             `).join('');
+            
+            // Set initial theme from storage or default
+            setTheme(currentTheme);
         }
 
         function createSkeleton(count) {
@@ -332,20 +366,19 @@
                     else if (type === 'team' && isTeamSection) results.push(p);
                 });
 
-                // Update branding based on #1
-                if (results.length > 0) updateBranding(results[0][Object.keys(results[0])[1]]);
-
-                // Sort favorites to top
-                results.sort((a, b) => {
-                    const aFav = favorites.includes(a[Object.keys(a)[1]]) ? 1 : 0;
-                    const bFav = favorites.includes(b[Object.keys(b)[1]]) ? 1 : 0;
+                // Sort favorites to top for display only
+                const sortedResults = [...results].sort((a, b) => {
+                    const nameA = a[Object.keys(a)[1]];
+                    const nameB = b[Object.keys(b)[1]];
+                    const aFav = favorites.includes(nameA) ? 1 : 0;
+                    const bFav = favorites.includes(nameB) ? 1 : 0;
                     return bFav - aFav;
                 });
 
                 let html = `<div class="giant-header mt-1">${type === 'individual' ? 'Leaderboard' : 'Team Standings'}</div>
                             <div class="sub-header-labels"><div>RK</div><div class="text-center">${type === 'individual' ? 'PLAYER' : 'TEAM'}</div><div class="text-center">SC</div><div class="text-right">THRU</div></div>`;
                 
-                list.innerHTML = html + results.map((p, i) => createRow(p, i)).join('');
+                list.innerHTML = html + sortedResults.map((p, i) => createRow(p, i)).join('');
             } catch (e) { list.innerHTML = `<div class="p-10 text-center text-red-500 font-bold">Connection Error.</div>`; }
         }
 
