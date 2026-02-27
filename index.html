@@ -6,19 +6,56 @@
     <title>Region 5 Live Scoring</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Mobile-First Base Styles */
-        body { -webkit-tap-highlight-color: transparent; }
-        .active-tab { border-bottom: 4px solid #15803d; color: #15803d; }
-        .loader { border-top-color: #15803d; animation: spinner 1s linear infinite; }
-        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        .centered-container {
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+
+        :root {
+            --primary-color: #15803d;
+            --primary-dark: #064e3b;
         }
 
-        /* Leaderboard Grid - Redesigned for better Name space */
+        body { 
+            -webkit-tap-highlight-color: transparent; 
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.5s ease;
+        }
+
+        .active-tab { border-bottom: 4px solid var(--primary-color); color: var(--primary-color); }
+        
+        /* Glassmorphism Header */
+        .glass-header {
+            background: rgba(20, 83, 45, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Monospace for numbers to ensure alignment */
+        .tabular-nums { font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+
+        /* Animation: Staggered Entrance */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .row-animate {
+            animation: fadeInUp 0.4s ease forwards;
+            opacity: 0;
+        }
+
+        /* Skeleton Loaders */
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+        }
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .centered-container { max-width: 600px; margin: 0 auto; }
+
         .lb-grid {
             display: grid;
             grid-template-columns: 32px 1fr 48px 42px;
@@ -26,31 +63,24 @@
             gap: 2px;
         }
 
-        /* Player Scores Grid */
-        .scores-grid {
-            display: grid;
-            grid-template-columns: 1fr 55px 45px;
-            align-items: center;
-            gap: 4px;
-        }
-
         .rank-cell { text-align: left; font-weight: 900; color: #6b7280; font-size: 0.8rem; }
         .name-cell { display: flex; align-items: center; font-weight: 800; text-transform: uppercase; overflow: hidden; min-width: 0; }
         .name-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.85rem; flex: 1; }
         .score-cell { text-align: center; font-weight: 900; font-style: italic; font-size: 1.1rem; }
-        .holes-cell { text-align: right; font-weight: 700; color: #9ca3af; font-size: 0.7rem; padding-right: 2px; }
+        .holes-cell { text-align: right; font-weight: 700; color: #9ca3af; font-size: 0.7rem; }
 
         .giant-header {
             font-size: 1.1rem;
             font-weight: 900;
             text-transform: uppercase;
             text-align: center;
-            background-color: #15803d;
+            background-color: var(--primary-color);
             color: white;
             padding: 10px;
             border-radius: 10px;
             margin-bottom: 4px;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            transition: background-color 0.5s ease;
         }
 
         .sub-header-labels {
@@ -61,28 +91,8 @@
             color: #9ca3af;
             text-transform: uppercase;
             padding: 4px 10px;
-            letter-spacing: 0.05em;
         }
 
-        .scores-header-labels {
-            display: grid;
-            grid-template-columns: 1fr 55px 45px;
-            font-size: 9px;
-            font-weight: 900;
-            color: #9ca3af;
-            text-transform: uppercase;
-            padding: 10px 12px;
-            letter-spacing: 0.05em;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        
-        .header-gradient {
-            background: linear-gradient(180deg, #064e3b 0%, #14532d 100%);
-        }
-
-        /* School Logo Banner */
         .school-banner {
             display: flex;
             justify-content: center;
@@ -91,54 +101,68 @@
             gap: 6px;
             padding: 8px;
             background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(4px);
-            margin-top: 12px;
             border-radius: 10px;
+            margin-top: 12px;
         }
         
-        .school-logo {
-            width: 28px;
-            height: 28px;
-            object-fit: contain;
-            background: white;
-            padding: 2px;
-            border-radius: 4px;
-        }
+        .school-logo { width: 28px; height: 28px; object-fit: contain; background: white; padding: 2px; border-radius: 4px; }
+        .inline-logo { width: 18px; height: 18px; min-width: 18px; object-fit: contain; display: inline-block; vertical-align: middle; margin-right: 4px; background: white; padding: 1px; border-radius: 3px; }
 
-        .inline-logo {
-            width: 18px;
-            height: 18px;
-            min-width: 18px;
-            object-fit: contain;
+        /* Favorite Pinning Star */
+        .fav-star { font-size: 14px; margin-right: 4px; cursor: pointer; color: #d1d5db; transition: color 0.2s; }
+        .fav-star.active { color: #f59e0b; }
+
+        /* Pulse Indicator */
+        .pulse-live {
+            width: 8px;
+            height: 8px;
+            background: #ef4444;
+            border-radius: 50%;
             display: inline-block;
-            vertical-align: middle;
-            margin-right: 4px;
-            background: white;
-            padding: 1px;
-            border-radius: 3px;
+            margin-right: 6px;
+            box-shadow: 0 0 0 rgba(239, 68, 68, 0.4);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
         }
 
-        /* Desktop Breakpoint */
         @media (min-width: 640px) {
             .lb-grid { grid-template-columns: 50px 1fr 70px 60px; gap: 8px; }
-            .scores-grid { grid-template-columns: 1fr 80px 60px; gap: 8px; }
-            .sub-header-labels { grid-template-columns: 50px 1fr 70px 60px; font-size: 10px; }
-            .scores-header-labels { grid-template-columns: 1fr 80px 60px; font-size: 10px; }
             .name-text { font-size: 1.1rem; }
             .rank-cell { font-size: 1rem; }
             .score-cell { font-size: 1.5rem; }
-            .holes-cell { font-size: 0.85rem; }
             .giant-header { font-size: 1.5rem; }
-            .school-logo { width: 40px; height: 40px; }
-            .inline-logo { width: 24px; height: 24px; min-width: 24px; }
+            .school-logo { width: 36px; height: 36px; }
+        }
+
+        /* Pull to refresh UI */
+        #pull-to-refresh {
+            height: 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f3f4f6;
+            transition: height 0.2s;
         }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen font-sans text-gray-900">
+<body class="bg-gray-100 min-h-screen text-gray-900 overflow-x-hidden">
 
-    <header class="header-gradient text-white shadow-xl sticky top-0 z-50">
+    <div id="pull-to-refresh" class="text-xs font-bold text-gray-400 uppercase tracking-widest">
+        Release to Refresh
+    </div>
+
+    <header class="glass-header text-white shadow-xl sticky top-0 z-50">
         <div class="max-w-5xl mx-auto px-4 pt-3 pb-2">
             <div class="relative flex flex-col items-center">
+                <div class="absolute left-0 top-0 flex items-center pt-2">
+                    <span class="pulse-live"></span>
+                    <span class="text-[10px] font-bold uppercase tracking-widest opacity-80">Live</span>
+                </div>
                 <div class="absolute right-0 top-0">
                     <button onclick="refreshData()" class="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all active:scale-95">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -149,55 +173,39 @@
                 
                 <div class="flex flex-col items-center text-center w-full">
                     <div class="flex items-center justify-center space-x-2">
-                        <span class="text-xl">⛳</span>
-                        <h1 class="text-xl sm:text-4xl font-black tracking-tighter uppercase italic">Region 5</h1>
+                        <h1 class="text-xl sm:text-3xl font-black tracking-tighter uppercase italic">Region 5</h1>
                     </div>
                     <span class="text-[9px] sm:text-xs font-bold tracking-[0.3em] text-green-300 uppercase opacity-90">Live Scoring Hub</span>
-                    
                     <div id="school-logo-banner" class="school-banner"></div>
                 </div>
             </div>
         </div>
 
         <div class="flex justify-center bg-white text-gray-500 text-[11px] sm:text-sm font-bold uppercase border-b shadow-sm overflow-x-auto scrollbar-hide">
-            <button onclick="setView('leaderboard')" id="tab-leaderboard" class="px-5 py-3 active-tab whitespace-nowrap">Individuals</button>
-            <button onclick="setView('teams')" id="tab-teams" class="px-5 py-3 whitespace-nowrap">Teams</button>
-            <button onclick="setView('scores')" id="tab-scores" class="px-5 py-3 whitespace-nowrap">Scores</button>
-            <button onclick="setView('input')" id="tab-input" class="px-5 py-3 whitespace-nowrap">Enter</button>
+            <button onclick="setView('leaderboard')" id="tab-leaderboard" class="px-5 py-3 active-tab transition-all">Individuals</button>
+            <button onclick="setView('teams')" id="tab-teams" class="px-5 py-3 transition-all">Teams</button>
+            <button onclick="setView('scores')" id="tab-scores" class="px-5 py-3 transition-all">Scores</button>
+            <button onclick="setView('input')" id="tab-input" class="px-5 py-3 transition-all">Enter</button>
         </div>
     </header>
 
-    <main class="max-w-5xl mx-auto p-2 sm:p-4 pb-24">
-        <!-- Individuals -->
+    <main id="main-content" class="max-w-5xl mx-auto p-2 sm:p-4 pb-24">
         <div id="view-leaderboard" class="view">
             <div class="centered-container"><div id="leaderboard-list" class="grid gap-1"></div></div>
         </div>
-
-        <!-- Teams -->
         <div id="view-teams" class="view hidden">
             <div class="centered-container"><div id="teams-list" class="grid gap-1"></div></div>
         </div>
-
-        <!-- All Scores -->
         <div id="view-scores" class="view hidden">
             <div class="centered-container">
                 <div class="mb-3 px-1">
-                    <input type="text" onkeyup="filterPlayerScores(this.value)" placeholder="Search players..." class="w-full p-3 rounded-xl border border-gray-300 shadow-sm outline-none focus:ring-2 focus:ring-green-500 text-base">
+                    <input type="text" onkeyup="filterPlayerScores(this.value)" placeholder="Search players..." class="w-full p-3 rounded-xl border border-gray-300 shadow-inner outline-none focus:ring-2 focus:ring-green-500 text-base">
                 </div>
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                    <div class="scores-header-labels bg-gray-50">
-                        <div>PLAYER</div>
-                        <div class="text-center">SCORE</div>
-                        <div class="text-right pr-2">THRU</div>
-                    </div>
-                    <div id="scores-list" class="divide-y divide-gray-100"></div>
-                </div>
+                <div id="scores-list" class="grid gap-1"></div>
             </div>
         </div>
-
-        <!-- Entry Page -->
         <div id="view-input" class="view hidden">
-            <div class="bg-white p-5 rounded-2xl shadow-lg max-w-lg mx-auto border">
+            <div class="bg-white p-5 rounded-2xl shadow-lg max-w-lg mx-auto border border-gray-100">
                 <h2 class="text-lg font-black text-center mb-4 uppercase">Submit Group Scores</h2>
                 <div class="space-y-3">
                     <div class="grid grid-cols-2 gap-3">
@@ -219,27 +227,53 @@
 
     <script>
         const DEPLOY_URL = "https://script.google.com/macros/s/AKfycbzZob3wO7GbG1G3l9mNd3TozlqQpyMe4ekgdvuJev3v1549jpm3t2ovnG9wLZ5cVwgzxw/exec";
+        let favorites = JSON.parse(localStorage.getItem('golf_favs') || '[]');
 
         const SCHOOLS = [
-            { name: "Box Elder", url: "https://cmsv2-assets.apptegy.net/uploads/7672/logo/9154/bee_new.png" },
-            { name: "Bonneville", url: "https://core-docs.s3.amazonaws.com/weber_school_district__ut_ar/article/image/large_b2cffc0f-68ec-428c-a650-81767d56453b.png" },
-            { name: "West Field", url: "https://assets.hometownticketing.com/clients/westfield/logos/school_logo_ebc133bd.png" },
-            { name: "Fremont", url: "https://assets.hometownticketing.com/clients/fremontathletics/logos/school_logo_c1182661.png" },
-            { name: "Northridge", url: "https://sportshub2-uploads.vnn-prod.zone/files/sites/429/2020/09/29204806/KnightVectorGraphic.png" },
-            { name: "Clearfield", url: "https://cmsv2-assets.apptegy.net/uploads/22258/file/3291122/77646c73-243c-4814-b16b-1a9a686cfc78.png" },
-            { name: "Roy", url: "https://cmsv2-assets.apptegy.net/uploads/25031/file/5081095/46ab505e-f612-4145-9e63-ec68e8782242.jpeg" }
+            { name: "BOX ELDER", url: "https://cmsv2-assets.apptegy.net/uploads/7672/logo/9154/bee_new.png", color: "#facc15" },
+            { name: "BONNEVILLE", url: "https://core-docs.s3.amazonaws.com/weber_school_district__ut_ar/article/image/large_b2cffc0f-68ec-428c-a650-81767d56453b.png", color: "#1e40af" },
+            { name: "WEST FIELD", url: "https://assets.hometownticketing.com/clients/westfield/logos/school_logo_ebc133bd.png", color: "#dc2626" },
+            { name: "FREMONT", url: "https://assets.hometownticketing.com/clients/fremontathletics/logos/school_logo_c1182661.png", color: "#1e3a8a" },
+            { name: "NORTHRIDGE", url: "https://sportshub2-uploads.vnn-prod.zone/files/sites/429/2020/09/29204806/KnightVectorGraphic.png", color: "#991b1b" },
+            { name: "CLEARFIELD", url: "https://cmsv2-assets.apptegy.net/uploads/22258/file/3291122/77646c73-243c-4814-b16b-1a9a686cfc78.png", color: "#14532d" },
+            { name: "ROY", url: "https://cmsv2-assets.apptegy.net/uploads/25031/file/5081095/46ab505e-f612-4145-9e63-ec68e8782242.jpeg", color: "#6b21a8" }
         ];
 
         function getLogoHtml(text) {
-            if (!text) return "";
-            const match = SCHOOLS.find(s => text.toUpperCase().includes(s.name.toUpperCase()));
-            return match ? `<img src="${match.url}" class="inline-logo" alt="${match.name}">` : "";
+            const match = SCHOOLS.find(s => text.toUpperCase().includes(s.name));
+            return match ? `<img src="${match.url}" class="inline-logo shadow-sm" alt="${match.name}">` : "";
+        }
+
+        function updateBranding(topName) {
+            const match = SCHOOLS.find(s => topName.toUpperCase().includes(s.name));
+            if (match) {
+                document.documentElement.style.setProperty('--primary-color', match.color);
+            }
+        }
+
+        function toggleFavorite(name) {
+            if (favorites.includes(name)) favorites = favorites.filter(f => f !== name);
+            else favorites.push(name);
+            localStorage.setItem('golf_favs', JSON.stringify(favorites));
+            refreshData();
         }
 
         function initLogos() {
             const banner = document.getElementById('school-logo-banner');
             banner.innerHTML = SCHOOLS.map(school => `
-                <img src="${school.url}" alt="${school.name}" class="school-logo shadow-sm">
+                <img src="${school.url}" alt="${school.name}" class="school-logo shadow-sm border border-gray-100">
+            `).join('');
+        }
+
+        function createSkeleton(count) {
+            return `<div class="giant-header skeleton h-12 w-full mt-1 mb-6 rounded-xl opacity-20"></div>` + 
+                   Array(count).fill(0).map(() => `
+                <div class="bg-white p-4 rounded-xl shadow-sm lb-grid opacity-40 mb-1">
+                    <div class="skeleton h-4 w-4 rounded"></div>
+                    <div class="skeleton h-4 w-3/4 rounded ml-2"></div>
+                    <div class="skeleton h-6 w-8 rounded ml-auto"></div>
+                    <div class="skeleton h-4 w-6 rounded ml-auto"></div>
+                </div>
             `).join('');
         }
 
@@ -248,39 +282,28 @@
             document.getElementById(`view-${view}`).classList.remove('hidden');
             document.querySelectorAll('header button').forEach(el => el.classList.remove('active-tab'));
             document.getElementById(`tab-${view}`).classList.add('active-tab');
-            
-            if (view === 'leaderboard') fetchLeaderboard('individual');
-            if (view === 'teams') fetchLeaderboard('team');
-            if (view === 'scores') fetchPlayerScores();
+            refreshData();
         }
 
-        const createGiantHeader = (title, label) => `
-            <div class="giant-header mt-1">${title}</div>
-            <div class="sub-header-labels">
-                <div>RANK</div>
-                <div style="text-align: center;">${label}</div>
-                <div style="text-align: center;">SCORE</div>
-                <div style="text-align: right;">THRU</div>
-            </div>
-        `;
-
-        const createRow = (p) => {
+        const createRow = (p, index) => {
             const keys = Object.keys(p);
             const rank = p[keys[0]] || "-";
             const name = p[keys[1]] || "Unknown";
             const score = p[keys[2]] || "E";
             const holes = p[keys[3]] || "0";
             const isUnder = String(score).startsWith('-');
+            const isFav = favorites.includes(name);
 
             return `
-                <div class="bg-white py-2.5 px-2 rounded-xl shadow-sm border border-gray-200 lb-grid">
-                    <div class="rank-cell">${rank}</div>
+                <div class="bg-white py-2.5 px-3 rounded-xl shadow-sm border border-gray-200 lb-grid row-animate" style="animation-delay: ${index * 0.05}s">
+                    <div class="rank-cell tabular-nums">${rank}</div>
                     <div class="name-cell">
+                        <span onclick="toggleFavorite('${name}')" class="fav-star ${isFav ? 'active' : ''}">${isFav ? '★' : '☆'}</span>
                         ${getLogoHtml(name)}
                         <span class="name-text">${name}</span>
                     </div>
-                    <div class="score-cell ${isUnder ? 'text-red-600' : 'text-gray-800'}">${score}</div>
-                    <div class="holes-cell">${holes}</div>
+                    <div class="score-cell tabular-nums ${isUnder ? 'text-red-600' : 'text-gray-800'}">${score}</div>
+                    <div class="holes-cell tabular-nums">${holes}</div>
                 </div>
             `;
         };
@@ -288,15 +311,14 @@
         async function fetchLeaderboard(type = 'individual') {
             const listId = type === 'individual' ? 'leaderboard-list' : 'teams-list';
             const list = document.getElementById(listId);
-            list.innerHTML = `<div class="flex justify-center py-12"><div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-10 w-10"></div></div>`;
+            list.innerHTML = createSkeleton(10);
             
             try {
                 const res = await fetch(`${DEPLOY_URL}?action=getLeaderboard`);
                 const data = await res.json();
                 
-                let html = (type === 'individual') ? createGiantHeader('Leaderboard', 'PLAYER') : createGiantHeader('Team Standings', 'TEAM');
+                let results = [];
                 let isTeamSection = false;
-                let count = 0;
 
                 data.forEach((p, index) => {
                     const keys = Object.keys(p);
@@ -306,72 +328,88 @@
                     }
                     if (nameVal === "PLAYER" || nameVal === "TEAM" || nameVal === "" || nameVal.includes("TEAM LEADERS")) return;
 
-                    if (type === 'individual' && !isTeamSection) {
-                        if (count < 12) { html += createRow(p); count++; }
-                    } else if (type === 'team' && isTeamSection) {
-                        html += createRow(p);
-                        count++;
-                    }
+                    if (type === 'individual' && !isTeamSection) results.push(p);
+                    else if (type === 'team' && isTeamSection) results.push(p);
                 });
-                list.innerHTML = count > 0 ? html : `<div class="p-10 text-center text-gray-400">Updating...</div>`;
-            } catch (e) { list.innerHTML = `<div class="p-6 text-center text-red-500 font-bold">Network Error.</div>`; }
+
+                // Update branding based on #1
+                if (results.length > 0) updateBranding(results[0][Object.keys(results[0])[1]]);
+
+                // Sort favorites to top
+                results.sort((a, b) => {
+                    const aFav = favorites.includes(a[Object.keys(a)[1]]) ? 1 : 0;
+                    const bFav = favorites.includes(b[Object.keys(b)[1]]) ? 1 : 0;
+                    return bFav - aFav;
+                });
+
+                let html = `<div class="giant-header mt-1">${type === 'individual' ? 'Leaderboard' : 'Team Standings'}</div>
+                            <div class="sub-header-labels"><div>RK</div><div class="text-center">${type === 'individual' ? 'PLAYER' : 'TEAM'}</div><div class="text-center">SC</div><div class="text-right">THRU</div></div>`;
+                
+                list.innerHTML = html + results.map((p, i) => createRow(p, i)).join('');
+            } catch (e) { list.innerHTML = `<div class="p-10 text-center text-red-500 font-bold">Connection Error.</div>`; }
         }
 
         async function fetchPlayerScores() {
             const list = document.getElementById('scores-list');
-            list.innerHTML = `<div class="flex justify-center py-12"><div class="loader rounded-full border-4 border-t-4 border-gray-200 h-10 w-10"></div></div>`;
+            list.innerHTML = createSkeleton(8);
             try {
                 const res = await fetch(`${DEPLOY_URL}?action=getAllScores`);
                 const data = await res.json();
+                const players = data.slice(2).filter(p => p[Object.keys(p)[2]] && p[Object.keys(p)[2]] !== "Player Name");
                 
-                list.innerHTML = data.slice(2).map(p => {
+                list.innerHTML = `<div class="sub-header-labels grid-cols-3 !grid" style="grid-template-columns: 1fr 55px 45px"><div>PLAYER</div><div class="text-center">SC</div><div class="text-right">THRU</div></div>` + 
+                players.map((p, i) => {
                     const keys = Object.keys(p);
-                    const name = (p[keys[2]] || "").toString().trim(); 
-                    const thru = (p[keys[24]] || "0").toString().trim(); 
-                    const score = (p[keys[25]] || "E").toString().trim(); 
-                    if(!name || name.toUpperCase() === "PLAYER NAME" || name === "") return null;
+                    const name = p[keys[2]]; const thru = p[keys[24]] || "0"; const score = p[keys[25]] || "E";
                     const isUnder = String(score).startsWith('-');
-                    
                     return `
-                        <div class="p-3 score-entry scores-grid">
-                            <span class="font-bold text-gray-800 uppercase flex items-center overflow-hidden">
+                        <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between row-animate" style="animation-delay: ${i*0.02}s">
+                            <span class="font-bold text-gray-800 uppercase flex items-center overflow-hidden flex-1">
                                 ${getLogoHtml(name)}
-                                <span class="truncate text-[0.8rem] sm:text-base">${name}</span>
+                                <span class="truncate text-[0.85rem]">${name}</span>
                             </span>
-                            <span class="text-lg font-black text-center ${isUnder ? 'text-red-600' : 'text-green-700'}">${score}</span>
-                            <span class="text-xs font-bold text-gray-400 text-right pr-2">${thru}</span>
+                            <span class="w-14 text-center tabular-nums text-lg font-black ${isUnder ? 'text-red-600' : 'text-green-800'}">${score}</span>
+                            <span class="w-10 text-right tabular-nums text-xs font-bold text-gray-400">${thru}</span>
                         </div>`;
-                }).filter(html => html !== null).join('');
-            } catch (e) { list.innerHTML = `<div class="p-10 text-center text-red-500">Error loading.</div>`; }
+                }).join('');
+            } catch (e) { list.innerHTML = `<div class="p-10 text-center text-red-500">Error.</div>`; }
         }
+
+        // Pull to refresh logic
+        let startY = 0;
+        document.addEventListener('touchstart', e => { startY = e.touches[0].pageY; }, {passive: true});
+        document.addEventListener('touchmove', e => {
+            const y = e.touches[0].pageY;
+            if (window.scrollY === 0 && y > startY) {
+                const diff = Math.min((y - startY) / 2, 60);
+                document.getElementById('pull-to-refresh').style.height = diff + 'px';
+            }
+        }, {passive: true});
+        document.addEventListener('touchend', e => {
+            const ptr = document.getElementById('pull-to-refresh');
+            if (parseInt(ptr.style.height) > 50) refreshData();
+            ptr.style.height = '0px';
+        });
 
         async function loadGroupPlayers() {
             const groupVal = document.getElementById('groupSelect').value;
             const container = document.getElementById('group-player-inputs');
             if (!groupVal) return container.innerHTML = "";
             const groupTab = groupVal.replace("Group ", "G");
-            container.innerHTML = `<div class="flex justify-center py-4"><div class="loader border-2 h-6 w-6"></div></div>`;
-            
+            container.innerHTML = `<div class="flex justify-center py-4"><div class="skeleton h-8 w-full rounded-xl opacity-20"></div></div>`;
             try {
                 const res = await fetch(`${DEPLOY_URL}?action=getGroupPlayers&groupTab=${encodeURIComponent(groupTab)}`);
                 const players = await res.json();
-                const actualPlayers = players.filter(name => {
-                    if (!name) return false;
-                    const n = name.toString().trim().toUpperCase();
-                    return n !== "" && n !== "HOLE" && n !== "PAR" && n !== "PLAYER" && n !== "NAME";
-                });
-
-                container.innerHTML = actualPlayers.map(name => `
-                    <div class="flex items-center justify-between p-2.5 bg-gray-50 rounded-xl border border-gray-200">
-                        <span class="font-bold text-gray-700 text-[0.75rem] uppercase flex items-center overflow-hidden mr-2">
-                            ${getLogoHtml(name)}
-                            <span class="truncate">${name}</span>
+                container.innerHTML = players.filter(n => n && n !== "Name" && n !== "Hole").map(name => `
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-200">
+                        <span class="font-bold text-gray-700 text-[0.8rem] uppercase flex items-center truncate mr-2">
+                            ${getLogoHtml(name)} ${name}
                         </span>
-                        <input type="number" inputmode="numeric" data-player="${name}" placeholder="Par" class="player-score-input w-16 p-2 border rounded-lg text-center font-bold text-lg focus:ring-2 focus:ring-green-500">
+                        <input type="number" inputmode="numeric" data-player="${name}" placeholder="Par" class="player-score-input w-16 p-2 border-2 rounded-lg text-center font-bold text-xl outline-none focus:border-green-500">
                     </div>
                 `).join('');
                 document.getElementById('submitBtn').disabled = false;
-            } catch (e) { container.innerHTML = `<div class="text-red-500 text-center text-xs">Error.</div>`; }
+            } catch (e) { container.innerHTML = `<div class="text-red-500 text-center">Error.</div>`; }
         }
 
         async function submitScores() {
@@ -386,7 +424,6 @@
             });
             if (!hasScores) return showStatus("Enter a score.", false);
             btn.disabled = true; btn.innerText = "SUBMITTING...";
-
             try {
                 const response = await fetch(DEPLOY_URL, { method: 'POST', body: JSON.stringify({ groupTab, holeNum: hole, scores }) });
                 const result = await response.json();
@@ -405,7 +442,7 @@
         }
 
         function filterPlayerScores(q) {
-            const items = document.querySelectorAll('.score-entry');
+            const items = document.querySelectorAll('.view:not(.hidden) .row-animate');
             const searchTerm = q.toLowerCase();
             items.forEach(i => i.style.display = i.innerText.toLowerCase().includes(searchTerm) ? '' : 'none');
         }
