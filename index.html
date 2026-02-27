@@ -18,27 +18,27 @@
             margin-right: auto;
         }
 
-        /* Leaderboard Grid - Optimized for Mobile */
+        /* Leaderboard Grid - Redesigned for better Name space */
         .lb-grid {
             display: grid;
-            grid-template-columns: 35px 1fr 55px 45px;
+            grid-template-columns: 32px 1fr 48px 42px;
             align-items: center;
-            gap: 4px;
+            gap: 2px;
         }
 
-        /* Player Scores Grid - Optimized for Mobile */
+        /* Player Scores Grid */
         .scores-grid {
             display: grid;
-            grid-template-columns: 1fr 60px 45px;
+            grid-template-columns: 1fr 55px 45px;
             align-items: center;
             gap: 4px;
         }
 
-        .rank-cell { text-align: left; font-weight: 900; color: #6b7280; font-size: 0.875rem; }
-        .name-cell { display: flex; align-items: center; font-weight: 800; text-transform: uppercase; overflow: hidden; }
-        .name-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem; }
-        .score-cell { text-align: center; font-weight: 900; font-style: italic; font-size: 1.25rem; }
-        .holes-cell { text-align: right; font-weight: 700; color: #9ca3af; font-size: 0.75rem; }
+        .rank-cell { text-align: left; font-weight: 900; color: #6b7280; font-size: 0.8rem; }
+        .name-cell { display: flex; align-items: center; font-weight: 800; text-transform: uppercase; overflow: hidden; min-width: 0; }
+        .name-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.85rem; flex: 1; }
+        .score-cell { text-align: center; font-weight: 900; font-style: italic; font-size: 1.1rem; }
+        .holes-cell { text-align: right; font-weight: 700; color: #9ca3af; font-size: 0.7rem; padding-right: 2px; }
 
         .giant-header {
             font-size: 1.1rem;
@@ -55,18 +55,18 @@
 
         .sub-header-labels {
             display: grid;
-            grid-template-columns: 35px 1fr 55px 45px;
-            font-size: 9px;
+            grid-template-columns: 32px 1fr 48px 42px;
+            font-size: 8px;
             font-weight: 900;
             color: #9ca3af;
             text-transform: uppercase;
-            padding: 4px 12px;
+            padding: 4px 10px;
             letter-spacing: 0.05em;
         }
 
         .scores-header-labels {
             display: grid;
-            grid-template-columns: 1fr 60px 45px;
+            grid-template-columns: 1fr 55px 45px;
             font-size: 9px;
             font-weight: 900;
             color: #9ca3af;
@@ -82,23 +82,23 @@
             background: linear-gradient(180deg, #064e3b 0%, #14532d 100%);
         }
 
-        /* School Logo Banner - Responsive wrapping */
+        /* School Logo Banner */
         .school-banner {
             display: flex;
             justify-content: center;
             align-items: center;
             flex-wrap: wrap;
-            gap: 8px;
-            padding: 10px;
+            gap: 6px;
+            padding: 8px;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(4px);
-            margin-top: 15px;
-            border-radius: 12px;
+            margin-top: 12px;
+            border-radius: 10px;
         }
         
         .school-logo {
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             object-fit: contain;
             background: white;
             padding: 2px;
@@ -106,34 +106,38 @@
         }
 
         .inline-logo {
-            width: 20px;
-            height: 20px;
-            min-width: 20px;
+            width: 18px;
+            height: 18px;
+            min-width: 18px;
             object-fit: contain;
             display: inline-block;
             vertical-align: middle;
-            margin-right: 6px;
+            margin-right: 4px;
             background: white;
             padding: 1px;
             border-radius: 3px;
         }
 
-        /* Responsive adjustments for larger screens */
+        /* Desktop Breakpoint */
         @media (min-width: 640px) {
-            .lb-grid { grid-template-columns: 50px 1fr 70px 60px; }
-            .scores-grid { grid-template-columns: 1fr 80px 60px; }
+            .lb-grid { grid-template-columns: 50px 1fr 70px 60px; gap: 8px; }
+            .scores-grid { grid-template-columns: 1fr 80px 60px; gap: 8px; }
             .sub-header-labels { grid-template-columns: 50px 1fr 70px 60px; font-size: 10px; }
             .scores-header-labels { grid-template-columns: 1fr 80px 60px; font-size: 10px; }
             .name-text { font-size: 1.1rem; }
+            .rank-cell { font-size: 1rem; }
+            .score-cell { font-size: 1.5rem; }
+            .holes-cell { font-size: 0.85rem; }
             .giant-header { font-size: 1.5rem; }
             .school-logo { width: 40px; height: 40px; }
+            .inline-logo { width: 24px; height: 24px; min-width: 24px; }
         }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen font-sans text-gray-900">
 
     <header class="header-gradient text-white shadow-xl sticky top-0 z-50">
-        <div class="max-w-5xl mx-auto px-4 pt-4 pb-2">
+        <div class="max-w-5xl mx-auto px-4 pt-3 pb-2">
             <div class="relative flex flex-col items-center">
                 <div class="absolute right-0 top-0">
                     <button onclick="refreshData()" class="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all active:scale-95">
@@ -145,10 +149,10 @@
                 
                 <div class="flex flex-col items-center text-center w-full">
                     <div class="flex items-center justify-center space-x-2">
-                        <span class="text-2xl">⛳</span>
-                        <h1 class="text-2xl sm:text-4xl font-black tracking-tighter uppercase italic">Region 5</h1>
+                        <span class="text-xl">⛳</span>
+                        <h1 class="text-xl sm:text-4xl font-black tracking-tighter uppercase italic">Region 5</h1>
                     </div>
-                    <span class="text-[10px] sm:text-xs font-bold tracking-[0.3em] text-green-300 uppercase opacity-90">Live Scoring Hub</span>
+                    <span class="text-[9px] sm:text-xs font-bold tracking-[0.3em] text-green-300 uppercase opacity-90">Live Scoring Hub</span>
                     
                     <div id="school-logo-banner" class="school-banner"></div>
                 </div>
@@ -156,28 +160,28 @@
         </div>
 
         <div class="flex justify-center bg-white text-gray-500 text-[11px] sm:text-sm font-bold uppercase border-b shadow-sm overflow-x-auto scrollbar-hide">
-            <button onclick="setView('leaderboard')" id="tab-leaderboard" class="px-4 py-3 active-tab whitespace-nowrap">Individuals</button>
-            <button onclick="setView('teams')" id="tab-teams" class="px-4 py-3 whitespace-nowrap">Teams</button>
-            <button onclick="setView('scores')" id="tab-scores" class="px-4 py-3 whitespace-nowrap">Scores</button>
-            <button onclick="setView('input')" id="tab-input" class="px-4 py-3 whitespace-nowrap">Enter</button>
+            <button onclick="setView('leaderboard')" id="tab-leaderboard" class="px-5 py-3 active-tab whitespace-nowrap">Individuals</button>
+            <button onclick="setView('teams')" id="tab-teams" class="px-5 py-3 whitespace-nowrap">Teams</button>
+            <button onclick="setView('scores')" id="tab-scores" class="px-5 py-3 whitespace-nowrap">Scores</button>
+            <button onclick="setView('input')" id="tab-input" class="px-5 py-3 whitespace-nowrap">Enter</button>
         </div>
     </header>
 
-    <main class="max-w-5xl mx-auto p-3 pb-24">
+    <main class="max-w-5xl mx-auto p-2 sm:p-4 pb-24">
         <!-- Individuals -->
         <div id="view-leaderboard" class="view">
-            <div class="centered-container"><div id="leaderboard-list" class="grid gap-1.5"></div></div>
+            <div class="centered-container"><div id="leaderboard-list" class="grid gap-1"></div></div>
         </div>
 
         <!-- Teams -->
         <div id="view-teams" class="view hidden">
-            <div class="centered-container"><div id="teams-list" class="grid gap-1.5"></div></div>
+            <div class="centered-container"><div id="teams-list" class="grid gap-1"></div></div>
         </div>
 
         <!-- All Scores -->
         <div id="view-scores" class="view hidden">
             <div class="centered-container">
-                <div class="mb-3">
+                <div class="mb-3 px-1">
                     <input type="text" onkeyup="filterPlayerScores(this.value)" placeholder="Search players..." class="w-full p-3 rounded-xl border border-gray-300 shadow-sm outline-none focus:ring-2 focus:ring-green-500 text-base">
                 </div>
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -251,7 +255,7 @@
         }
 
         const createGiantHeader = (title, label) => `
-            <div class="giant-header mt-2">${title}</div>
+            <div class="giant-header mt-1">${title}</div>
             <div class="sub-header-labels">
                 <div>RANK</div>
                 <div style="text-align: center;">${label}</div>
@@ -269,7 +273,7 @@
             const isUnder = String(score).startsWith('-');
 
             return `
-                <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-100 lb-grid">
+                <div class="bg-white py-2.5 px-2 rounded-xl shadow-sm border border-gray-200 lb-grid">
                     <div class="rank-cell">${rank}</div>
                     <div class="name-cell">
                         ${getLogoHtml(name)}
@@ -290,7 +294,7 @@
                 const res = await fetch(`${DEPLOY_URL}?action=getLeaderboard`);
                 const data = await res.json();
                 
-                let html = (type === 'individual') ? createGiantHeader('Individuals', 'PLAYER') : createGiantHeader('Teams', 'TEAM');
+                let html = (type === 'individual') ? createGiantHeader('Leaderboard', 'PLAYER') : createGiantHeader('Team Standings', 'TEAM');
                 let isTeamSection = false;
                 let count = 0;
 
@@ -332,7 +336,7 @@
                         <div class="p-3 score-entry scores-grid">
                             <span class="font-bold text-gray-800 uppercase flex items-center overflow-hidden">
                                 ${getLogoHtml(name)}
-                                <span class="truncate text-[0.85rem] sm:text-base">${name}</span>
+                                <span class="truncate text-[0.8rem] sm:text-base">${name}</span>
                             </span>
                             <span class="text-lg font-black text-center ${isUnder ? 'text-red-600' : 'text-green-700'}">${score}</span>
                             <span class="text-xs font-bold text-gray-400 text-right pr-2">${thru}</span>
@@ -359,7 +363,7 @@
 
                 container.innerHTML = actualPlayers.map(name => `
                     <div class="flex items-center justify-between p-2.5 bg-gray-50 rounded-xl border border-gray-200">
-                        <span class="font-bold text-gray-700 text-[0.8rem] uppercase flex items-center overflow-hidden mr-2">
+                        <span class="font-bold text-gray-700 text-[0.75rem] uppercase flex items-center overflow-hidden mr-2">
                             ${getLogoHtml(name)}
                             <span class="truncate">${name}</span>
                         </span>
