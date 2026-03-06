@@ -144,6 +144,19 @@
             100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
         }
 
+        /* Rules UI */
+        .rule-card {
+            background: white;
+            border-left: 4px solid var(--primary-color);
+            padding: 12px 16px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            transition: border-color 0.5s ease;
+        }
+
         @media (min-width: 640px) {
             .lb-grid { grid-template-columns: 50px 1fr 70px 60px; gap: 8px; }
             .name-text { font-size: 1.1rem; }
@@ -163,6 +176,21 @@
             background: #f3f4f6;
             transition: height 0.2s;
         }
+
+        /* Navigation Group Labeling */
+        .nav-group-header {
+            font-size: 7px;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #9ca3af;
+            margin-bottom: -4px;
+            margin-top: 2px;
+        }
+
+        /* Hide Scrollbar for Nav but keep functional */
+        .nav-scroll::-webkit-scrollbar { display: none; }
+        .nav-scroll { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen text-gray-900 overflow-x-hidden">
@@ -198,12 +226,26 @@
             </div>
         </div>
 
-        <div class="flex justify-center bg-white text-gray-500 text-[11px] sm:text-sm font-bold uppercase border-b shadow-sm overflow-x-auto scrollbar-hide">
-            <button onclick="setView('leaderboard')" id="tab-leaderboard" class="px-5 py-3 active-tab transition-all">Individuals</button>
-            <button onclick="setView('teams')" id="tab-teams" class="px-5 py-3 transition-all">Teams</button>
-            <button onclick="setView('scores')" id="tab-scores" class="px-5 py-3 transition-all">Scores</button>
-            <button onclick="setView('input')" id="tab-input" class="px-5 py-3 transition-all">Enter</button>
-        </div>
+        <!-- Optimized Navigation Tabs -->
+        <nav class="bg-white border-b shadow-sm">
+            <div class="nav-scroll flex items-end justify-start sm:justify-center text-gray-500 text-[10px] sm:text-sm font-bold uppercase overflow-x-auto whitespace-nowrap px-2">
+                
+                <!-- Leaders Group -->
+                <div class="flex flex-col items-center border-r border-gray-100">
+                    <div class="nav-group-header">Leaders</div>
+                    <div class="flex">
+                        <button onclick="setView('leaderboard')" id="tab-leaderboard" class="px-3 sm:px-5 py-3 active-tab transition-all">Individual</button>
+                        <button onclick="setView('teams')" id="tab-teams" class="px-3 sm:px-5 py-3 transition-all">Teams</button>
+                    </div>
+                </div>
+
+                <!-- Global Tabs -->
+                <button onclick="setView('scores')" id="tab-scores" class="px-3 sm:px-5 py-3 transition-all border-r border-gray-100 h-full flex items-end mb-0">All Scores</button>
+                <button onclick="setView('input')" id="tab-input" class="px-3 sm:px-5 py-3 transition-all border-r border-gray-100 h-full flex items-end mb-0">Score Entry</button>
+                <button onclick="setView('rules')" id="tab-rules" class="px-3 sm:px-5 py-3 transition-all border-r border-gray-100 h-full flex items-end mb-0">Rules</button>
+                <button onclick="setView('pace')" id="tab-pace" class="px-3 sm:px-5 py-3 transition-all h-full flex items-end mb-0">Pace</button>
+            </div>
+        </nav>
     </header>
 
     <main id="main-content" class="max-w-5xl mx-auto p-2 sm:p-4 pb-24">
@@ -221,22 +263,75 @@
                 <div id="scores-list" class="grid gap-1"></div>
             </div>
         </div>
+
         <div id="view-input" class="view hidden">
-            <div class="bg-white p-5 rounded-2xl shadow-lg max-w-lg mx-auto border border-gray-100">
-                <h2 class="text-lg font-black text-center mb-4 uppercase">Submit Group Scores</h2>
-                <div class="space-y-3">
-                    <div class="grid grid-cols-2 gap-3">
-                        <select id="groupSelect" onchange="loadGroupPlayers()" class="w-full p-3 border rounded-xl bg-gray-50 font-bold text-sm">
-                            <option value="">Group...</option>
-                            <option value="Group 1">1</option><option value="Group 2">2</option><option value="Group 3">3</option><option value="Group 4">4</option><option value="Group 5">5</option><option value="Group 6">6</option><option value="Group 7">7</option><option value="Group 8">8</option><option value="Group 9">9</option><option value="Group 10">10</option><option value="Group 11">11</option><option value="Group 12">12</option><option value="Group 13">13</option><option value="Group 14">14</option><option value="Group 15">15</option><option value="Group 16">16</option>
-                        </select>
-                        <select id="holeSelect" class="w-full p-3 border rounded-xl bg-gray-50 font-bold text-sm">
-                            <option value="1">Hole 1</option><option value="2">Hole 2</option><option value="3">Hole 3</option><option value="4">Hole 4</option><option value="5">Hole 5</option><option value="6">Hole 6</option><option value="7">Hole 7</option><option value="8">Hole 8</option><option value="9">Hole 9</option><option value="10">Hole 10</option><option value="11">Hole 11</option><option value="12">Hole 12</option><option value="13">Hole 13</option><option value="14">Hole 14</option><option value="15">Hole 15</option><option value="16">Hole 16</option><option value="17">Hole 17</option><option value="18">Hole 18</option>
-                        </select>
+            <div class="centered-container">
+                <!-- Designated Score Keeper Warning -->
+                <div class="mb-4 bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl shadow-sm">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-xs font-black text-amber-800 uppercase tracking-tight">Warning</p>
+                            <p class="text-xs text-amber-700 font-medium mt-0.5">Do not enter scores unless you have been designated as the score keeper for your group.</p>
+                        </div>
                     </div>
-                    <div id="group-player-inputs" class="space-y-2 py-2"></div>
-                    <button id="submitBtn" onclick="submitScores()" disabled class="w-full bg-green-700 text-white font-black py-4 rounded-xl shadow-lg disabled:opacity-30 uppercase text-sm">Submit Scores</button>
-                    <div id="statusMsg" class="text-center font-bold p-3 rounded-lg hidden text-sm"></div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-lg border border-gray-100">
+                    <h2 class="text-lg font-black text-center mb-4 uppercase">Submit Group Scores</h2>
+                    <div class="space-y-3">
+                        <div class="grid grid-cols-2 gap-3">
+                            <select id="groupSelect" onchange="loadGroupPlayers()" class="w-full p-3 border rounded-xl bg-gray-50 font-bold text-sm">
+                                <option value="">Group...</option>
+                                <option value="Group 1">1</option><option value="Group 2">2</option><option value="Group 3">3</option><option value="Group 4">4</option><option value="Group 5">5</option><option value="Group 6">6</option><option value="Group 7">7</option><option value="Group 8">8</option><option value="Group 9">9</option><option value="Group 10">10</option><option value="Group 11">11</option><option value="Group 12">12</option><option value="Group 13">13</option><option value="Group 14">14</option><option value="Group 15">15</option><option value="Group 16">16</option>
+                            </select>
+                            <select id="holeSelect" class="w-full p-3 border rounded-xl bg-gray-50 font-bold text-sm">
+                                <option value="1">Hole 1</option><option value="2">Hole 2</option><option value="3">Hole 3</option><option value="4">Hole 4</option><option value="5">Hole 5</option><option value="6">Hole 6</option><option value="7">Hole 7</option><option value="8">Hole 8</option><option value="9">Hole 9</option><option value="10">Hole 10</option><option value="11">Hole 11</option><option value="12">Hole 12</option><option value="13">Hole 13</option><option value="14">Hole 14</option><option value="15">Hole 15</option><option value="16">Hole 16</option><option value="17">Hole 17</option><option value="18">Hole 18</option>
+                            </select>
+                        </div>
+                        <div id="group-player-inputs" class="space-y-2 py-2"></div>
+                        <button id="submitBtn" onclick="submitScores()" disabled class="w-full bg-green-700 text-white font-black py-4 rounded-xl shadow-lg disabled:opacity-30 uppercase text-sm">Submit Scores</button>
+                        <div id="statusMsg" class="text-center font-bold p-3 rounded-lg hidden text-sm"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-rules" class="view hidden">
+            <div class="centered-container px-1">
+                <div class="giant-header mt-1">Spectator Rules</div>
+                <div class="space-y-3 mt-4">
+                    <div class="rule-card"><strong>Stay at least 30 feet away</strong> from players at all times.</div>
+                    <div class="rule-card"><strong>DO NOT</strong> give players advice.</div>
+                    <div class="rule-card"><strong>No Private Conversations:</strong> Avoid private discussions with your player as these will be viewed as giving advice during the round.</div>
+                    <div class="rule-card">Make sure cell phones are on <strong>silent</strong>.</div>
+                    <div class="rule-card"><strong>YOU ARE NOT A RULES OFFICIAL.</strong> The coaches are the rules officials.</div>
+                    <div class="rule-card"><strong>Don’t linger.</strong> There are other groups playing. If you stand around in the fairway or in front of the putting green this will hold up play.</div>
+                    <div class="rule-card">Please be <strong>courteous</strong> to all players and coaches.</div>
+                    <div class="rule-card"><strong>Respect</strong> the golf course.</div>
+                    <div class="rule-card bg-red-50 !border-red-500">
+                        <span class="text-red-700 font-bold">WARNING POLICY:</span> If spectators are not following the rules, they will be given one warning. After that the Region 5 coaches have the right to ask spectators that are not following rules to leave.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NEW PACE OF PLAY VIEW -->
+        <div id="view-pace" class="view hidden">
+            <div class="centered-container px-1">
+                <div class="giant-header mt-1">Pace of Play</div>
+                <div class="space-y-3 mt-4">
+                    <div class="rule-card">The easiest way to stay on pace is to <strong>walk quickly between shots and holes</strong>. Visit as you walk.</div>
+                    <div class="rule-card"><strong>Play ready golf.</strong> Be ready to hit when it is your turn and remember you don't have to wait to be the furthest from the hole as long as you aren't disrupting another players' shot.</div>
+                    <div class="rule-card">You have <strong>3 minutes</strong> to search for lost or OB balls.</div>
+                    <div class="rule-card">If you aren't sure if you will find your ball, <strong>play a provisional</strong> and tell your playing partners that is what you are doing.</div>
+                    <div class="rule-card bg-blue-50 !border-blue-400">
+                        <span class="text-blue-800 font-bold">PRO TIP:</span> If you aren't waiting on the group in front of you at the tee box then you are likely behind pace.
+                    </div>
                 </div>
             </div>
         </div>
@@ -248,25 +343,21 @@
         let currentTheme = localStorage.getItem('golf_theme') || "REGION";
 
         const SCHOOLS = [
-            { id: "BOX ELDER", name: "BOX ELDER", url: "https://cmsv2-assets.apptegy.net/uploads/7672/logo/9154/bee_new.png", color: "#6b21a8" }, // Purple
-            { id: "BONNEVILLE", name: "BONNEVILLE", url: "https://core-docs.s3.amazonaws.com/weber_school_district__ut_ar/article/image/large_b2cffc0f-68ec-428c-a650-81767d56453b.png", color: "#1e3a8a" }, // Navy Blue
-            { id: "WEST FIELD", name: "WEST FIELD", url: "https://assets.hometownticketing.com/clients/westfield/logos/school_logo_ebc133bd.png", color: "#c2410c" }, // Burnt Orange
-            { id: "FREMONT", name: "FREMONT", url: "https://assets.hometownticketing.com/clients/fremontathletics/logos/school_logo_c1182661.png", color: "#2563eb" }, // Royal Blue
-            { id: "NORTHRIDGE", name: "NORTHRIDGE", url: "https://sportshub2-uploads.vnn-prod.zone/files/sites/429/2020/09/29204806/KnightVectorGraphic.png", color: "#991b1b" }, // Dark Red
-            { id: "CLEARFIELD", name: "CLEARFIELD", url: "https://cmsv2-assets.apptegy.net/uploads/22258/file/3291122/77646c73-243c-4814-b16b-1a9a686cfc78.png", color: "#15803d" }, // Green
-            { id: "ROY", name: "ROY", url: "https://cmsv2-assets.apptegy.net/uploads/25031/file/5081095/46ab505e-f612-4145-9e63-ec68e8782242.jpeg", color: "#eab308" } // Yellow
+            { id: "BOX ELDER", name: "BOX ELDER", url: "https://cmsv2-assets.apptegy.net/uploads/7672/logo/9154/bee_new.png", color: "#6b21a8" }, 
+            { id: "BONNEVILLE", name: "BONNEVILLE", url: "https://core-docs.s3.amazonaws.com/weber_school_district__ut_ar/article/image/large_b2cffc0f-68ec-428c-a650-81767d56453b.png", color: "#1e3a8a" }, 
+            { id: "WEST FIELD", name: "WEST FIELD", url: "https://assets.hometownticketing.com/clients/westfield/logos/school_logo_ebc133bd.png", color: "#c2410c" }, 
+            { id: "FREMONT", name: "FREMONT", url: "https://assets.hometownticketing.com/clients/fremontathletics/logos/school_logo_c1182661.png", color: "#2563eb" }, 
+            { id: "NORTHRIDGE", name: "NORTHRIDGE", url: "https://sportshub2-uploads.vnn-prod.zone/files/sites/429/2020/09/29204806/KnightVectorGraphic.png", color: "#991b1b" }, 
+            { id: "CLEARFIELD", name: "CLEARFIELD", url: "https://cmsv2-assets.apptegy.net/uploads/22258/file/3291122/77646c73-243c-4814-b16b-1a9a686cfc78.png", color: "#15803d" }, 
+            { id: "ROY", name: "ROY", url: "https://cmsv2-assets.apptegy.net/uploads/25031/file/5081095/46ab505e-f612-4145-9e63-ec68e8782242.jpeg", color: "#eab308" } 
         ];
 
         function setTheme(schoolId) {
             currentTheme = schoolId;
             localStorage.setItem('golf_theme', schoolId);
-            
             const match = SCHOOLS.find(s => s.id === schoolId);
-            const color = match ? match.color : '#15803d'; // Default region green
-            
+            const color = match ? match.color : '#15803d';
             document.documentElement.style.setProperty('--primary-color', color);
-            
-            // Update active state in banner
             document.querySelectorAll('.school-logo-btn').forEach(btn => {
                 btn.classList.toggle('active-branding', btn.dataset.id === schoolId);
             });
@@ -294,8 +385,6 @@
                      onclick="setTheme('${school.id}')"
                      class="school-logo-btn shadow-sm ${currentTheme === school.id ? 'active-branding' : ''}">
             `).join('');
-            
-            // Set initial theme from storage or default
             setTheme(currentTheme);
         }
 
@@ -314,9 +403,10 @@
         function setView(view) {
             document.querySelectorAll('.view').forEach(el => el.classList.add('hidden'));
             document.getElementById(`view-${view}`).classList.remove('hidden');
-            document.querySelectorAll('header button').forEach(el => el.classList.remove('active-tab'));
-            document.getElementById(`tab-${view}`).classList.add('active-tab');
-            refreshData();
+            document.querySelectorAll('nav button').forEach(el => el.classList.remove('active-tab'));
+            const activeBtn = document.getElementById(`tab-${view}`);
+            if (activeBtn) activeBtn.classList.add('active-tab');
+            if (view !== 'rules' && view !== 'input' && view !== 'pace') refreshData();
         }
 
         const createRow = (p, index) => {
@@ -346,14 +436,11 @@
             const listId = type === 'individual' ? 'leaderboard-list' : 'teams-list';
             const list = document.getElementById(listId);
             list.innerHTML = createSkeleton(10);
-            
             try {
                 const res = await fetch(`${DEPLOY_URL}?action=getLeaderboard`);
                 const data = await res.json();
-                
                 let results = [];
                 let isTeamSection = false;
-
                 data.forEach((p, index) => {
                     const keys = Object.keys(p);
                     const nameVal = String(p[keys[1]] || "").trim().toUpperCase();
@@ -361,12 +448,9 @@
                         if (!isTeamSection && (nameVal.includes("TEAM") || index >= 13)) isTeamSection = true;
                     }
                     if (nameVal === "PLAYER" || nameVal === "TEAM" || nameVal === "" || nameVal.includes("TEAM LEADERS")) return;
-
                     if (type === 'individual' && !isTeamSection) results.push(p);
                     else if (type === 'team' && isTeamSection) results.push(p);
                 });
-
-                // Sort favorites to top for display only
                 const sortedResults = [...results].sort((a, b) => {
                     const nameA = a[Object.keys(a)[1]];
                     const nameB = b[Object.keys(b)[1]];
@@ -374,10 +458,8 @@
                     const bFav = favorites.includes(nameB) ? 1 : 0;
                     return bFav - aFav;
                 });
-
                 let html = `<div class="giant-header mt-1">${type === 'individual' ? 'Leaderboard' : 'Team Standings'}</div>
                             <div class="sub-header-labels"><div>RK</div><div class="text-center">${type === 'individual' ? 'PLAYER' : 'TEAM'}</div><div class="text-center">SC</div><div class="text-right">THRU</div></div>`;
-                
                 list.innerHTML = html + sortedResults.map((p, i) => createRow(p, i)).join('');
             } catch (e) { list.innerHTML = `<div class="p-10 text-center text-red-500 font-bold">Connection Error.</div>`; }
         }
@@ -389,7 +471,6 @@
                 const res = await fetch(`${DEPLOY_URL}?action=getAllScores`);
                 const data = await res.json();
                 const players = data.slice(2).filter(p => p[Object.keys(p)[2]] && p[Object.keys(p)[2]] !== "Player Name");
-                
                 list.innerHTML = `<div class="sub-header-labels grid-cols-3 !grid" style="grid-template-columns: 1fr 55px 45px"><div>PLAYER</div><div class="text-center">SC</div><div class="text-right">THRU</div></div>` + 
                 players.map((p, i) => {
                     const keys = Object.keys(p);
@@ -408,7 +489,6 @@
             } catch (e) { list.innerHTML = `<div class="p-10 text-center text-red-500">Error.</div>`; }
         }
 
-        // Pull to refresh logic
         let startY = 0;
         document.addEventListener('touchstart', e => { startY = e.touches[0].pageY; }, {passive: true});
         document.addEventListener('touchmove', e => {
@@ -481,7 +561,7 @@
         }
 
         function refreshData() {
-            const active = document.querySelector('header button.active-tab').id;
+            const active = document.querySelector('nav button.active-tab')?.id;
             if (active === 'tab-leaderboard') fetchLeaderboard('individual');
             if (active === 'tab-teams') fetchLeaderboard('team');
             if (active === 'tab-scores') fetchPlayerScores();
