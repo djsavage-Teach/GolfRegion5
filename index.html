@@ -11,6 +11,7 @@
         :root {
             --primary-color: #15803d;
             --primary-dark: #064e3b;
+            --card-cream: #fdfbf7;
         }
 
         body { 
@@ -21,7 +22,6 @@
 
         .active-tab { border-bottom: 4px solid var(--primary-color); color: var(--primary-color); }
         
-        /* Glassmorphism Header */
         .glass-header {
             background-color: var(--primary-color);
             background-image: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.4));
@@ -31,10 +31,8 @@
             transition: background-color 0.5s ease;
         }
 
-        /* Monospace for numbers to ensure alignment */
         .tabular-nums { font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
 
-        /* Animation: Staggered Entrance */
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -43,17 +41,6 @@
         .row-animate {
             animation: fadeInUp 0.4s ease forwards;
             opacity: 0;
-        }
-
-        /* Skeleton Loaders */
-        .skeleton {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200%  100%;
-            animation: skeleton-loading 1.5s infinite;
-        }
-        @keyframes skeleton-loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
         }
 
         .centered-container { max-width: 600px; margin: 0 auto; }
@@ -85,16 +72,6 @@
             transition: background-color 0.5s ease;
         }
 
-        .sub-header-labels {
-            display: grid;
-            grid-template-columns: 32px 1fr 48px 42px;
-            font-size: 8px;
-            font-weight: 900;
-            color: #9ca3af;
-            text-transform: uppercase;
-            padding: 4px 10px;
-        }
-
         .school-banner {
             display: flex;
             justify-content: center;
@@ -118,16 +95,10 @@
             transition: transform 0.2s, box-shadow 0.2s;
             border: 2px solid transparent;
         }
-        .school-logo-btn:active { transform: scale(0.9); }
         .school-logo-btn.active-branding { border-color: white; box-shadow: 0 0 10px rgba(255,255,255,0.5); }
 
         .inline-logo { width: 18px; height: 18px; min-width: 18px; object-fit: contain; display: inline-block; vertical-align: middle; margin-right: 4px; background: white; padding: 1px; border-radius: 3px; }
 
-        /* Favorite Pinning Star */
-        .fav-star { font-size: 14px; margin-right: 4px; cursor: pointer; color: #d1d5db; transition: color 0.2s; }
-        .fav-star.active { color: #f59e0b; }
-
-        /* Pulse Indicator */
         .pulse-live {
             width: 8px;
             height: 8px;
@@ -135,7 +106,6 @@
             border-radius: 50%;
             display: inline-block;
             margin-right: 6px;
-            box-shadow: 0 0 0 rgba(239, 68, 68, 0.4);
             animation: pulse 2s infinite;
         }
         @keyframes pulse {
@@ -144,7 +114,6 @@
             100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
         }
 
-        /* Rules UI */
         .rule-card {
             background: white;
             border-left: 4px solid var(--primary-color);
@@ -166,18 +135,6 @@
             .school-logo-btn { width: 40px; height: 40px; }
         }
 
-        /* Pull to refresh UI */
-        #pull-to-refresh {
-            height: 0;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #f3f4f6;
-            transition: height 0.2s;
-        }
-
-        /* Navigation Group Labeling */
         .nav-group-header {
             font-size: 7px;
             font-weight: 900;
@@ -188,16 +145,91 @@
             margin-top: 2px;
         }
 
-        /* Hide Scrollbar for Nav but keep functional */
         .nav-scroll::-webkit-scrollbar { display: none; }
         .nav-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .clubhouse-card {
+            background-color: var(--card-cream);
+            border: 2px solid #d1c7b7;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .score-table { border-collapse: collapse; width: 100%; }
+        .score-table th, .score-table td { border: 1px solid #d1c7b7; padding: 0; text-align: center; height: 48px; }
+
+        .sticky-col {
+            position: sticky;
+            left: 0;
+            background-color: var(--card-cream);
+            z-index: 10;
+            border-right: 2px solid #d1c7b7 !important;
+            min-width: 140px;
+            text-align: left !important;
+            padding-left: 10px !important;
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+
+        .hole-header { background-color: #f1ede4; font-size: 11px; font-weight: 900; color: #7c7263; min-width: 45px; }
+
+        .score-input {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            text-align: center;
+            font-weight: 900;
+            font-size: 1.1rem;
+            color: #374151;
+            border: none;
+            outline: none;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        @keyframes blink-yellow {
+            0% { background-color: #fef3c7; }
+            50% { background-color: #fde68a; }
+            100% { background-color: #fef3c7; }
+        }
+
+        .syncing {
+            animation: blink-yellow 0.8s infinite;
+            color: #b45309 !important;
+        }
+
+        .synced-success {
+            background-color: transparent !important;
+            color: #15803d !important;
+        }
+
+        .sync-error {
+            background-color: #fee2e2 !important;
+            color: #b91c1c !important;
+        }
+
+        .total-col { background-color: #ebe6d9; font-weight: 900; min-width: 50px; color: #453f35; }
+
+        .saving-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(21, 128, 61, 0.9);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 800;
+            display: none;
+            z-index: 100;
+            text-transform: uppercase;
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen text-gray-900 overflow-x-hidden">
-
-    <div id="pull-to-refresh" class="text-xs font-bold text-gray-400 uppercase tracking-widest">
-        Release to Refresh
-    </div>
 
     <header class="glass-header text-white shadow-xl sticky top-0 z-50">
         <div class="max-w-5xl mx-auto px-4 pt-3 pb-2">
@@ -219,18 +251,13 @@
                         <h1 class="text-xl sm:text-3xl font-black tracking-tighter uppercase italic">Region 5</h1>
                     </div>
                     <span class="text-[9px] sm:text-xs font-bold tracking-[0.3em] text-white/70 uppercase">Live Scoring Hub</span>
-                    
-                    <!-- Interactive Branding Banner -->
                     <div id="school-logo-banner" class="school-banner"></div>
                 </div>
             </div>
         </div>
 
-        <!-- Optimized Navigation Tabs -->
         <nav class="bg-white border-b shadow-sm">
             <div class="nav-scroll flex items-end justify-start sm:justify-center text-gray-500 text-[10px] sm:text-sm font-bold uppercase overflow-x-auto whitespace-nowrap px-2">
-                
-                <!-- Leaders Group -->
                 <div class="flex flex-col items-center border-r border-gray-100">
                     <div class="nav-group-header">Leaders</div>
                     <div class="flex">
@@ -238,8 +265,6 @@
                         <button onclick="setView('teams')" id="tab-teams" class="px-3 sm:px-5 py-3 transition-all">Teams</button>
                     </div>
                 </div>
-
-                <!-- Global Tabs -->
                 <button onclick="setView('scores')" id="tab-scores" class="px-3 sm:px-5 py-3 transition-all border-r border-gray-100 h-full flex items-end mb-0">All Scores</button>
                 <button onclick="setView('input')" id="tab-input" class="px-3 sm:px-5 py-3 transition-all border-r border-gray-100 h-full flex items-end mb-0">Score Entry</button>
                 <button onclick="setView('rules')" id="tab-rules" class="px-3 sm:px-5 py-3 transition-all border-r border-gray-100 h-full flex items-end mb-0">Rules</button>
@@ -248,7 +273,7 @@
         </nav>
     </header>
 
-    <main id="main-content" class="max-w-5xl mx-auto p-2 sm:p-4 pb-24">
+    <main id="main-content" class="max-w-7xl mx-auto p-2 sm:p-4 pb-24">
         <div id="view-leaderboard" class="view">
             <div class="centered-container"><div id="leaderboard-list" class="grid gap-1"></div></div>
         </div>
@@ -265,39 +290,33 @@
         </div>
 
         <div id="view-input" class="view hidden">
-            <div class="centered-container">
-                <!-- Designated Score Keeper Warning -->
-                <div class="mb-4 bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl shadow-sm">
-                    <div class="flex items-start">
-                        <div class="flex-shrink-0">
-                            <svg class="h-5 w-5 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-                            </svg>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-xs font-black text-amber-800 uppercase tracking-tight">Warning</p>
-                            <p class="text-xs text-amber-700 font-medium mt-0.5">Do not enter scores unless you have been designated as the score keeper for your group.</p>
-                        </div>
-                    </div>
+            <div class="max-w-5xl mx-auto">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 mb-4">
+                    <label class="block text-[11px] font-black text-gray-400 uppercase mb-2 ml-1">Official Digital Scorecard</label>
+                    <select id="groupSelect" onchange="loadGroupScorecard()" class="w-full p-4 border-2 border-gray-100 rounded-xl bg-gray-50 font-black text-gray-700 outline-none focus:border-green-600 appearance-none">
+                        <option value="">-- Select Group --</option>
+                        <script>for(let i=1; i<=16; i++) document.write(`<option value="Group ${i}">Group ${i}</option>`);</script>
+                    </select>
                 </div>
 
-                <div class="bg-white p-5 rounded-2xl shadow-lg border border-gray-100">
-                    <h2 class="text-lg font-black text-center mb-4 uppercase">Submit Group Scores</h2>
-                    <div class="space-y-3">
-                        <div class="grid grid-cols-2 gap-3">
-                            <select id="groupSelect" onchange="loadGroupPlayers()" class="w-full p-3 border rounded-xl bg-gray-50 font-bold text-sm">
-                                <option value="">Group...</option>
-                                <option value="Group 1">1</option><option value="Group 2">2</option><option value="Group 3">3</option><option value="Group 4">4</option><option value="Group 5">5</option><option value="Group 6">6</option><option value="Group 7">7</option><option value="Group 8">8</option><option value="Group 9">9</option><option value="Group 10">10</option><option value="Group 11">11</option><option value="Group 12">12</option><option value="Group 13">13</option><option value="Group 14">14</option><option value="Group 15">15</option><option value="Group 16">16</option>
-                            </select>
-                            <select id="holeSelect" class="w-full p-3 border rounded-xl bg-gray-50 font-bold text-sm">
-                                <option value="1">Hole 1</option><option value="2">Hole 2</option><option value="3">Hole 3</option><option value="4">Hole 4</option><option value="5">Hole 5</option><option value="6">Hole 6</option><option value="7">Hole 7</option><option value="8">Hole 8</option><option value="9">Hole 9</option><option value="10">Hole 10</option><option value="11">Hole 11</option><option value="12">Hole 12</option><option value="13">Hole 13</option><option value="14">Hole 14</option><option value="15">Hole 15</option><option value="16">Hole 16</option><option value="17">Hole 17</option><option value="18">Hole 18</option>
-                            </select>
-                        </div>
-                        <div id="group-player-inputs" class="space-y-2 py-2"></div>
-                        <button id="submitBtn" onclick="submitScores()" disabled class="w-full bg-green-700 text-white font-black py-4 rounded-xl shadow-lg disabled:opacity-30 uppercase text-sm">Submit Scores</button>
-                        <div id="statusMsg" class="text-center font-bold p-3 rounded-lg hidden text-sm"></div>
-                    </div>
+                <div class="clubhouse-card overflow-x-auto relative">
+                    <div id="saving-msg" class="saving-indicator">Syncing...</div>
+                    <div id="card-placeholder" class="p-16 text-center text-gray-400 font-medium italic">Select a group to pull live scorecard</div>
+                    <table id="scorecard-table" class="score-table hidden">
+                        <thead>
+                            <tr>
+                                <th class="sticky-col">Player Name</th>
+                                <script>for(let i=1; i<=9; i++) document.write(`<th class="hole-header">${i}</th>`);</script>
+                                <th class="hole-header total-col">OUT</th>
+                                <script>for(let i=10; i<=18; i++) document.write(`<th class="hole-header">${i}</th>`);</script>
+                                <th class="hole-header total-col">IN</th>
+                                <th class="hole-header total-col">TOT</th>
+                            </tr>
+                        </thead>
+                        <tbody id="player-rows"></tbody>
+                    </table>
                 </div>
+                <div id="statusMsg" class="text-center font-bold p-4 rounded-xl hidden text-sm mt-4"></div>
             </div>
         </div>
 
@@ -305,17 +324,8 @@
             <div class="centered-container px-1">
                 <div class="giant-header mt-1">Spectator Rules</div>
                 <div class="space-y-3 mt-4">
-                    <div class="rule-card"><strong>Stay at least 30 feet away</strong> from players at all times.</div>
-                    <div class="rule-card"><strong>Don’t linger.</strong> There are other groups playing. Stay even or in front of the group you are spectating while ensuring you remain at least 30 feet away from players. Standing in fairways or in front of greens will hold up play.</div>
-                    <div class="rule-card"><strong>DO NOT</strong> give players advice.</div>
-                    <div class="rule-card"><strong>No Private Conversations:</strong> Avoid private discussions with your player as these will be viewed as giving advice during the round.</div>
-                    <div class="rule-card">Make sure cell phones are on <strong>silent</strong>.</div>
-                    <div class="rule-card"><strong>YOU ARE NOT A RULES OFFICIAL.</strong> The coaches are the rules officials.</div>
-                    <div class="rule-card">Please be <strong>courteous</strong> to all players and coaches.</div>
-                    <div class="rule-card"><strong>Respect</strong> the golf course.</div>
-                    <div class="rule-card bg-red-50 !border-red-500">
-                        <span class="text-red-700 font-bold">WARNING POLICY:</span> If spectators are not following the rules, they will be given one warning. After that the Region 5 coaches have the right to ask spectators that are not following rules to leave.
-                    </div>
+                    <div class="rule-card"><strong>Stay at least 30 feet away</strong> from players.</div>
+                    <div class="rule-card"><strong>No advice.</strong> Do not talk to players about strategy or club selection.</div>
                 </div>
             </div>
         </div>
@@ -324,13 +334,7 @@
             <div class="centered-container px-1">
                 <div class="giant-header mt-1">Pace of Play</div>
                 <div class="space-y-3 mt-4">
-                    <div class="rule-card">The easiest way to stay on pace is to <strong>walk quickly between shots and holes</strong>. Visit as you walk.</div>
-                    <div class="rule-card"><strong>Play ready golf.</strong> Be ready to hit when it is your turn and remember you don't have to wait to be the furthest from the hole as long as you aren't disrupting another players' shot.</div>
-                    <div class="rule-card">You have <strong>3 minutes</strong> to search for lost or OB balls.</div>
-                    <div class="rule-card">If you aren't sure if you will find your ball, <strong>play a provisional</strong> and tell your playing partners that is what you are doing.</div>
-                    <div class="rule-card bg-blue-50 !border-blue-400">
-                        <span class="text-blue-800 font-bold">PRO TIP:</span> If you aren't waiting on the group in front of you at the tee box then you are likely behind pace.
-                    </div>
+                    <div class="rule-card"><strong>Walk quickly.</strong> Don't linger between greens and tees.</div>
                 </div>
             </div>
         </div>
@@ -338,9 +342,9 @@
 
     <script>
         const DEPLOY_URL = "https://script.google.com/macros/s/AKfycbzZob3wO7GbG1G3l9mNd3TozlqQpyMe4ekgdvuJev3v1549jpm3t2ovnG9wLZ5cVwgzxw/exec";
-        let favorites = JSON.parse(localStorage.getItem('golf_favs') || '[]');
         let currentTheme = localStorage.getItem('golf_theme') || "REGION";
 
+        // Updated Logos for West Field and Fremont
         const SCHOOLS = [
             { id: "BOX ELDER", name: "BOX ELDER", url: "https://cmsv2-assets.apptegy.net/uploads/7672/logo/9154/bee_new.png", color: "#6b21a8" }, 
             { id: "BONNEVILLE", name: "BONNEVILLE", url: "https://core-docs.s3.amazonaws.com/weber_school_district__ut_ar/article/image/large_b2cffc0f-68ec-428c-a650-81767d56453b.png", color: "#1e3a8a" }, 
@@ -357,46 +361,140 @@
             const match = SCHOOLS.find(s => s.id === schoolId);
             const color = match ? match.color : '#15803d';
             document.documentElement.style.setProperty('--primary-color', color);
-            document.querySelectorAll('.school-logo-btn').forEach(btn => {
-                btn.classList.toggle('active-branding', btn.dataset.id === schoolId);
-            });
         }
+
+        const imgError = "this.onerror=null;this.src='https://upload.wikimedia.org/wikipedia/commons/e/e4/Ellipsis_icon.png';";
 
         function getLogoHtml(text) {
             if (!text) return "";
             const match = SCHOOLS.find(s => text.toUpperCase().includes(s.name));
-            return match ? `<img src="${match.url}" class="inline-logo shadow-sm" alt="${match.name}">` : "";
+            return match ? `<img src="${match.url}" class="inline-logo shadow-sm" alt="${match.name}" onerror="${imgError}">` : "";
         }
 
-        function toggleFavorite(name) {
-            if (favorites.includes(name)) favorites = favorites.filter(f => f !== name);
-            else favorites.push(name);
-            localStorage.setItem('golf_favs', JSON.stringify(favorites));
-            refreshData();
+        async function loadGroupScorecard() {
+            const groupVal = document.getElementById('groupSelect').value;
+            const table = document.getElementById('scorecard-table');
+            const placeholder = document.getElementById('card-placeholder');
+            const tbody = document.getElementById('player-rows');
+            
+            if (!groupVal) {
+                table.classList.add('hidden');
+                placeholder.classList.remove('hidden');
+                return;
+            }
+
+            placeholder.innerHTML = `<div class="p-16 flex flex-col items-center"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700 mb-4"></div><p class="font-bold text-gray-500">Retrieving Group Data...</p></div>`;
+            placeholder.classList.remove('hidden');
+            table.classList.add('hidden');
+
+            const groupTab = groupVal.replace("Group ", "G");
+            try {
+                const namesRes = await fetch(`${DEPLOY_URL}?action=getGroupPlayers&groupTab=${encodeURIComponent(groupTab)}`);
+                const groupNames = await namesRes.json();
+                
+                const scoresRes = await fetch(`${DEPLOY_URL}?action=getAllScores`);
+                const allScoresData = await scoresRes.json();
+
+                if (!groupNames || !Array.isArray(groupNames) || groupNames.length === 0) {
+                    placeholder.innerHTML = "No players found in tab " + groupTab;
+                    return;
+                }
+
+                tbody.innerHTML = groupNames.map(name => {
+                    const pData = allScoresData.find(row => row[Object.keys(row)[2]] === name) || {};
+                    const keys = Object.keys(pData);
+                    const idBase = name.replace(/\s/g, '');
+                    
+                    let row = `<tr><td class="sticky-col">${getLogoHtml(name)} ${name}</td>`;
+                    
+                    for(let h=1; h<=9; h++) {
+                        const score = pData[keys[h+2]] || "";
+                        row += `<td><input type="number" inputmode="numeric" class="score-input ${score ? 'synced-success' : ''}" value="${score}" data-player="${name}" data-hole="${h}" onblur="autoSaveScore(this)" onkeydown="if(event.key==='Enter') this.blur()"></td>`;
+                    }
+                    row += `<td id="out-${idBase}" class="total-col">-</td>`;
+
+                    for(let h=10; h<=18; h++) {
+                        const score = pData[keys[h+3]] || ""; 
+                        row += `<td><input type="number" inputmode="numeric" class="score-input ${score ? 'synced-success' : ''}" value="${score}" data-player="${name}" data-hole="${h}" onblur="autoSaveScore(this)" onkeydown="if(event.key==='Enter') this.blur()"></td>`;
+                    }
+                    row += `<td id="in-${idBase}" class="total-col">-</td>`;
+                    row += `<td id="tot-${idBase}" class="total-col">-</td>`;
+                    row += `</tr>`;
+                    return row;
+                }).join('');
+
+                placeholder.classList.add('hidden');
+                table.classList.remove('hidden');
+                groupNames.forEach(name => calculateTotals(name));
+            } catch (e) {
+                console.error(e);
+                placeholder.innerHTML = `<div class="text-red-500 font-bold">Sync Error. Please try again.</div>`;
+            }
         }
 
-        function initLogos() {
-            const banner = document.getElementById('school-logo-banner');
-            banner.innerHTML = SCHOOLS.map(school => `
-                <img src="${school.url}" 
-                     alt="${school.name}" 
-                     data-id="${school.id}"
-                     onclick="setTheme('${school.id}')"
-                     class="school-logo-btn shadow-sm ${currentTheme === school.id ? 'active-branding' : ''}">
-            `).join('');
-            setTheme(currentTheme);
+        async function autoSaveScore(input) {
+            const player = input.getAttribute('data-player');
+            const holeNum = input.getAttribute('data-hole');
+            const score = input.value;
+            const groupSelect = document.getElementById('groupSelect');
+            const groupTab = groupSelect.value.replace("Group ", "G");
+            
+            input.classList.remove('synced-success', 'sync-error');
+            input.classList.add('syncing');
+            
+            const savingMsg = document.getElementById('saving-msg');
+            savingMsg.style.display = 'block';
+            calculateTotals(player);
+
+            try {
+                const payload = {
+                    groupTab: groupTab,
+                    holeNum: holeNum,
+                    scores: { [player]: score || "" }
+                };
+
+                const response = await fetch(DEPLOY_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify(payload) 
+                });
+                
+                const result = await response.json();
+                
+                if(result.result === "success") {
+                    input.classList.remove('syncing');
+                    if(score) {
+                        input.classList.add('synced-success');
+                    }
+                } else {
+                    throw new Error("Update failed");
+                }
+            } catch (e) {
+                console.error(e);
+                input.classList.remove('syncing');
+                input.classList.add('sync-error');
+                showStatus(`Failed to sync ${player}`, false);
+            } finally {
+                setTimeout(() => { savingMsg.style.display = 'none'; }, 800);
+            }
         }
 
-        function createSkeleton(count) {
-            return `<div class="giant-header skeleton h-12 w-full mt-1 mb-6 rounded-xl opacity-20"></div>` + 
-                   Array(count).fill(0).map(() => `
-                <div class="bg-white p-4 rounded-xl shadow-sm lb-grid opacity-40 mb-1">
-                    <div class="skeleton h-4 w-4 rounded"></div>
-                    <div class="skeleton h-4 w-3/4 rounded ml-2"></div>
-                    <div class="skeleton h-6 w-8 rounded ml-auto"></div>
-                    <div class="skeleton h-4 w-6 rounded ml-auto"></div>
-                </div>
-            `).join('');
+        function calculateTotals(name) {
+            const idBase = name.replace(/\s/g, '');
+            let out = 0, inT = 0, outC = 0, inC = 0;
+            document.querySelectorAll(`input[data-player="${name}"]`).forEach(input => {
+                const h = parseInt(input.getAttribute('data-hole'));
+                const val = parseInt(input.value) || 0;
+                if(val > 0) {
+                    if(h <= 9) { out += val; outC++; }
+                    else { inT += val; inC++; }
+                }
+            });
+            const outEl = document.getElementById(`out-${idBase}`);
+            const inEl = document.getElementById(`in-${idBase}`);
+            const totEl = document.getElementById(`tot-${idBase}`);
+            if(outEl) outEl.innerText = outC > 0 ? out : '-';
+            if(inEl) inEl.innerText = inC > 0 ? inT : '-';
+            if(totEl) totEl.innerText = (outC+inC) > 0 ? (out+inT) : '-';
         }
 
         function setView(view) {
@@ -405,36 +503,15 @@
             document.querySelectorAll('nav button').forEach(el => el.classList.remove('active-tab'));
             const activeBtn = document.getElementById(`tab-${view}`);
             if (activeBtn) activeBtn.classList.add('active-tab');
-            if (view !== 'rules' && view !== 'input' && view !== 'pace') refreshData();
+            
+            if (['leaderboard', 'teams', 'scores'].includes(view)) {
+                refreshData();
+            }
         }
-
-        const createRow = (p, index) => {
-            const keys = Object.keys(p);
-            const rank = p[keys[0]] || "-";
-            const name = p[keys[1]] || "Unknown";
-            const score = p[keys[2]] || "E";
-            const holes = p[keys[3]] || "0";
-            const isUnder = String(score).startsWith('-');
-            const isFav = favorites.includes(name);
-
-            return `
-                <div class="bg-white py-2.5 px-3 rounded-xl shadow-sm border border-gray-200 lb-grid row-animate" style="animation-delay: ${index * 0.05}s">
-                    <div class="rank-cell tabular-nums">${rank}</div>
-                    <div class="name-cell">
-                        <span onclick="toggleFavorite('${name}')" class="fav-star ${isFav ? 'active' : ''}">${isFav ? '★' : '☆'}</span>
-                        ${getLogoHtml(name)}
-                        <span class="name-text">${name}</span>
-                    </div>
-                    <div class="score-cell tabular-nums ${isUnder ? 'text-red-600' : 'text-gray-800'}">${score}</div>
-                    <div class="holes-cell tabular-nums">${holes}</div>
-                </div>
-            `;
-        };
 
         async function fetchLeaderboard(type = 'individual') {
             const listId = type === 'individual' ? 'leaderboard-list' : 'teams-list';
             const list = document.getElementById(listId);
-            list.innerHTML = createSkeleton(10);
             try {
                 const res = await fetch(`${DEPLOY_URL}?action=getLeaderboard`);
                 const data = await res.json();
@@ -443,120 +520,52 @@
                 data.forEach((p, index) => {
                     const keys = Object.keys(p);
                     const nameVal = String(p[keys[1]] || "").trim().toUpperCase();
-                    if (index >= 13 || nameVal.includes("TEAM") || nameVal.includes("LEADERS")) {
-                        if (!isTeamSection && (nameVal.includes("TEAM") || index >= 13)) isTeamSection = true;
-                    }
-                    if (nameVal === "PLAYER" || nameVal === "TEAM" || nameVal === "" || nameVal.includes("TEAM LEADERS")) return;
+                    if (index >= 13 || nameVal.includes("TEAM")) isTeamSection = true;
+                    if (nameVal === "PLAYER" || nameVal === "TEAM" || nameVal === "") return;
                     if (type === 'individual' && !isTeamSection) results.push(p);
                     else if (type === 'team' && isTeamSection) results.push(p);
                 });
-                const sortedResults = [...results].sort((a, b) => {
-                    const nameA = a[Object.keys(a)[1]];
-                    const nameB = b[Object.keys(b)[1]];
-                    const aFav = favorites.includes(nameA) ? 1 : 0;
-                    const bFav = favorites.includes(nameB) ? 1 : 0;
-                    return bFav - aFav;
-                });
-                let html = `<div class="giant-header mt-1">${type === 'individual' ? 'Leaderboard' : 'Team Standings'}</div>
-                            <div class="sub-header-labels"><div>RK</div><div class="text-center">${type === 'individual' ? 'PLAYER' : 'TEAM'}</div><div class="text-center">SC</div><div class="text-right">THRU</div></div>`;
-                list.innerHTML = html + sortedResults.map((p, i) => createRow(p, i)).join('');
-            } catch (e) { list.innerHTML = `<div class="p-10 text-center text-red-500 font-bold">Connection Error.</div>`; }
+                list.innerHTML = `<div class="giant-header mt-1">${type === 'individual' ? 'Individual Leaders' : 'Team Leaders'}</div>` + 
+                    results.map((p, i) => {
+                        const keys = Object.keys(p);
+                        return `<div class="bg-white py-2.5 px-3 rounded-xl shadow-sm border border-gray-200 lb-grid row-animate" style="animation-delay: ${i * 0.05}s">
+                            <div class="rank-cell">${p[keys[0]] || '-'}</div>
+                            <div class="name-cell">${getLogoHtml(p[keys[1]])} <span class="name-text">${p[keys[1]]}</span></div>
+                            <div class="score-cell">${p[keys[2]]}</div>
+                            <div class="holes-cell">${p[keys[3]]}</div>
+                        </div>`;
+                    }).join('');
+            } catch (e) { list.innerHTML = `<div class="p-10 text-center text-red-500 font-bold uppercase text-xs">Error Loading</div>`; }
         }
 
         async function fetchPlayerScores() {
             const list = document.getElementById('scores-list');
-            list.innerHTML = createSkeleton(8);
             try {
                 const res = await fetch(`${DEPLOY_URL}?action=getAllScores`);
                 const data = await res.json();
-                const players = data.slice(2).filter(p => p[Object.keys(p)[2]] && p[Object.keys(p)[2]] !== "Player Name");
-                list.innerHTML = `<div class="sub-header-labels grid-cols-3 !grid" style="grid-template-columns: 1fr 55px 45px"><div>PLAYER</div><div class="text-center">SC</div><div class="text-right">THRU</div></div>` + 
-                players.map((p, i) => {
+                list.innerHTML = data.slice(2).filter(p => p[Object.keys(p)[2]] && p[Object.keys(p)[2]] !== "Player Name").map((p, i) => {
                     const keys = Object.keys(p);
-                    const name = p[keys[2]]; const thru = p[keys[24]] || "0"; const score = p[keys[25]] || "E";
-                    const isUnder = String(score).startsWith('-');
-                    return `
-                        <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between row-animate" style="animation-delay: ${i*0.02}s">
-                            <span class="font-bold text-gray-800 uppercase flex items-center overflow-hidden flex-1">
-                                ${getLogoHtml(name)}
-                                <span class="truncate text-[0.85rem]">${name}</span>
+                    return `<div class="bg-white p-2.5 px-3 rounded-xl shadow-sm border border-gray-100 grid grid-cols-[1fr_55px_45px] items-center row-animate" style="animation-delay: ${i*0.02}s">
+                            <span class="font-bold uppercase flex items-center overflow-hidden">
+                                ${getLogoHtml(p[keys[2]])} <span class="truncate text-[0.85rem]">${p[keys[2]]}</span>
                             </span>
-                            <span class="w-14 text-center tabular-nums text-lg font-black ${isUnder ? 'text-red-600' : 'text-green-800'}">${score}</span>
-                            <span class="w-10 text-right tabular-nums text-xs font-bold text-gray-400">${thru}</span>
+                            <span class="text-center text-lg font-black text-green-800">${p[keys[25]]}</span>
+                            <span class="text-right text-xs font-bold text-gray-400">${p[keys[24]]}</span>
                         </div>`;
                 }).join('');
-            } catch (e) { list.innerHTML = `<div class="p-10 text-center text-red-500">Error.</div>`; }
-        }
-
-        let startY = 0;
-        document.addEventListener('touchstart', e => { startY = e.touches[0].pageY; }, {passive: true});
-        document.addEventListener('touchmove', e => {
-            const y = e.touches[0].pageY;
-            if (window.scrollY === 0 && y > startY) {
-                const diff = Math.min((y - startY) / 2, 60);
-                document.getElementById('pull-to-refresh').style.height = diff + 'px';
-            }
-        }, {passive: true});
-        document.addEventListener('touchend', e => {
-            const ptr = document.getElementById('pull-to-refresh');
-            if (parseInt(ptr.style.height) > 50) refreshData();
-            ptr.style.height = '0px';
-        });
-
-        async function loadGroupPlayers() {
-            const groupVal = document.getElementById('groupSelect').value;
-            const container = document.getElementById('group-player-inputs');
-            if (!groupVal) return container.innerHTML = "";
-            const groupTab = groupVal.replace("Group ", "G");
-            container.innerHTML = `<div class="flex justify-center py-4"><div class="skeleton h-8 w-full rounded-xl opacity-20"></div></div>`;
-            try {
-                const res = await fetch(`${DEPLOY_URL}?action=getGroupPlayers&groupTab=${encodeURIComponent(groupTab)}`);
-                const players = await res.json();
-                container.innerHTML = players.filter(n => n && n !== "Name" && n !== "Hole").map(name => `
-                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-200">
-                        <span class="font-bold text-gray-700 text-[0.8rem] uppercase flex items-center truncate mr-2">
-                            ${getLogoHtml(name)} ${name}
-                        </span>
-                        <input type="number" inputmode="numeric" data-player="${name}" placeholder="Par" class="player-score-input w-16 p-2 border-2 rounded-lg text-center font-bold text-xl outline-none focus:border-green-500">
-                    </div>
-                `).join('');
-                document.getElementById('submitBtn').disabled = false;
-            } catch (e) { container.innerHTML = `<div class="text-red-500 text-center">Error.</div>`; }
-        }
-
-        async function submitScores() {
-            const groupVal = document.getElementById('groupSelect').value;
-            const groupTab = groupVal.replace("Group ", "G");
-            const hole = document.getElementById('holeSelect').value;
-            const btn = document.getElementById('submitBtn');
-            const scores = {};
-            let hasScores = false;
-            document.querySelectorAll('.player-score-input').forEach(i => { 
-                if(i.value) { scores[i.getAttribute('data-player')] = i.value; hasScores = true; }
-            });
-            if (!hasScores) return showStatus("Enter a score.", false);
-            btn.disabled = true; btn.innerText = "SUBMITTING...";
-            try {
-                const response = await fetch(DEPLOY_URL, { method: 'POST', body: JSON.stringify({ groupTab, holeNum: hole, scores }) });
-                const result = await response.json();
-                if (result.result === "success") {
-                    showStatus(`✓ Hole ${hole} updated!`, true);
-                    document.querySelectorAll('.player-score-input').forEach(i => i.value = '');
-                } else showStatus("Submission failed.", false);
-            } catch (e) { showStatus("Network error.", false); }
-            finally { btn.disabled = false; btn.innerText = "SUBMIT SCORES"; }
+            } catch (e) { list.innerHTML = `<div class="p-10 text-center text-red-500 font-bold uppercase text-xs">Error Loading</div>`; }
         }
 
         function showStatus(msg, success) {
             const s = document.getElementById('statusMsg');
-            s.innerText = msg; s.className = `text-center p-3 rounded-lg block font-bold mt-3 ${success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`;
+            s.innerText = msg; s.className = `text-center p-4 rounded-xl block font-black mt-4 border-2 ${success ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`;
             s.classList.remove('hidden'); setTimeout(() => s.classList.add('hidden'), 5000);
         }
 
         function filterPlayerScores(q) {
             const items = document.querySelectorAll('.view:not(.hidden) .row-animate');
-            const searchTerm = q.toLowerCase();
-            items.forEach(i => i.style.display = i.innerText.toLowerCase().includes(searchTerm) ? '' : 'none');
+            const term = q.toLowerCase();
+            items.forEach(i => i.style.display = i.innerText.toLowerCase().includes(term) ? '' : 'none');
         }
 
         function refreshData() {
@@ -566,7 +575,14 @@
             if (active === 'tab-scores') fetchPlayerScores();
         }
 
-        window.onload = () => { initLogos(); fetchLeaderboard('individual'); };
+        window.onload = () => { 
+            const banner = document.getElementById('school-logo-banner');
+            banner.innerHTML = SCHOOLS.map(s => `<img src="${s.url}" onclick="setTheme('${s.id}')" class="school-logo-btn shadow-sm" onerror="${imgError}">`).join('');
+            setTheme(currentTheme);
+            fetchLeaderboard('individual'); 
+        };
     </script>
 </body>
 </html>
+</html>
+
