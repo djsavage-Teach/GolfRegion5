@@ -344,7 +344,6 @@
         const DEPLOY_URL = "https://script.google.com/macros/s/AKfycbzZob3wO7GbG1G3l9mNd3TozlqQpyMe4ekgdvuJev3v1549jpm3t2ovnG9wLZ5cVwgzxw/exec";
         let currentTheme = localStorage.getItem('golf_theme') || "REGION";
 
-        // Updated Logos for West Field and Fremont
         const SCHOOLS = [
             { id: "BOX ELDER", name: "BOX ELDER", url: "https://cmsv2-assets.apptegy.net/uploads/7672/logo/9154/bee_new.png", color: "#6b21a8" }, 
             { id: "BONNEVILLE", name: "BONNEVILLE", url: "https://core-docs.s3.amazonaws.com/weber_school_district__ut_ar/article/image/large_b2cffc0f-68ec-428c-a650-81767d56453b.png", color: "#1e3a8a" }, 
@@ -369,6 +368,12 @@
             if (!text) return "";
             const match = SCHOOLS.find(s => text.toUpperCase().includes(s.name));
             return match ? `<img src="${match.url}" class="inline-logo shadow-sm" alt="${match.name}" onerror="${imgError}">` : "";
+        }
+
+        function getSchoolColor(text) {
+            if (!text) return null;
+            const match = SCHOOLS.find(s => text.toUpperCase().includes(s.name));
+            return match ? match.color : null;
         }
 
         async function loadGroupScorecard() {
@@ -404,8 +409,10 @@
                     const pData = allScoresData.find(row => row[Object.keys(row)[2]] === name) || {};
                     const keys = Object.keys(pData);
                     const idBase = name.replace(/\s/g, '');
+                    const schoolColor = getSchoolColor(name);
+                    const stickyStyle = schoolColor ? `style="background-color: ${schoolColor}; color: white; border-color: rgba(255,255,255,0.2) !important;"` : "";
                     
-                    let row = `<tr><td class="sticky-col">${getLogoHtml(name)} ${name}</td>`;
+                    let row = `<tr><td class="sticky-col" ${stickyStyle}>${getLogoHtml(name)} ${name}</td>`;
                     
                     for(let h=1; h<=9; h++) {
                         const score = pData[keys[h+2]] || "";
@@ -528,7 +535,9 @@
                 list.innerHTML = `<div class="giant-header mt-1">${type === 'individual' ? 'Individual Leaders' : 'Team Leaders'}</div>` + 
                     results.map((p, i) => {
                         const keys = Object.keys(p);
-                        return `<div class="bg-white py-2.5 px-3 rounded-xl shadow-sm border border-gray-200 lb-grid row-animate" style="animation-delay: ${i * 0.05}s">
+                        const schoolColor = getSchoolColor(p[keys[1]]);
+                        const borderStyle = schoolColor ? `style="border-left: 4px solid ${schoolColor}"` : "";
+                        return `<div class="bg-white py-2.5 px-3 rounded-xl shadow-sm border border-gray-200 lb-grid row-animate" ${borderStyle} style="animation-delay: ${i * 0.05}s">
                             <div class="rank-cell">${p[keys[0]] || '-'}</div>
                             <div class="name-cell">${getLogoHtml(p[keys[1]])} <span class="name-text">${p[keys[1]]}</span></div>
                             <div class="score-cell">${p[keys[2]]}</div>
@@ -545,7 +554,9 @@
                 const data = await res.json();
                 list.innerHTML = data.slice(2).filter(p => p[Object.keys(p)[2]] && p[Object.keys(p)[2]] !== "Player Name").map((p, i) => {
                     const keys = Object.keys(p);
-                    return `<div class="bg-white p-2.5 px-3 rounded-xl shadow-sm border border-gray-100 grid grid-cols-[1fr_55px_45px] items-center row-animate" style="animation-delay: ${i*0.02}s">
+                    const schoolColor = getSchoolColor(p[keys[2]]);
+                    const borderStyle = schoolColor ? `style="border-left: 4px solid ${schoolColor}"` : "";
+                    return `<div class="bg-white p-2.5 px-3 rounded-xl shadow-sm border border-gray-100 grid grid-cols-[1fr_55px_45px] items-center row-animate" ${borderStyle} style="animation-delay: ${i*0.02}s">
                             <span class="font-bold uppercase flex items-center overflow-hidden">
                                 ${getLogoHtml(p[keys[2]])} <span class="truncate text-[0.85rem]">${p[keys[2]]}</span>
                             </span>
@@ -584,5 +595,3 @@
     </script>
 </body>
 </html>
-</html>
-
