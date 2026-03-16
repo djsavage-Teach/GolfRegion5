@@ -227,6 +227,23 @@
             z-index: 100;
             text-transform: uppercase;
         }
+
+        .score-header-row {
+            display: grid;
+            grid-template-columns: 1fr 55px 45px;
+            padding: 8px 12px;
+            background: #f3f4f6;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            color: #6b7280;
+            letter-spacing: 0.05em;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen text-gray-900 overflow-x-hidden">
@@ -285,6 +302,11 @@
                 <div class="mb-3 px-1">
                     <input type="text" onkeyup="filterPlayerScores(this.value)" placeholder="Search players..." class="w-full p-3 rounded-xl border border-gray-300 shadow-inner outline-none focus:ring-2 focus:ring-green-500 text-base">
                 </div>
+                <div class="score-header-row px-3">
+                    <span>Player</span>
+                    <span class="text-center">Score</span>
+                    <span class="text-right">Thru</span>
+                </div>
                 <div id="scores-list" class="grid gap-1"></div>
             </div>
         </div>
@@ -324,8 +346,17 @@
             <div class="centered-container px-1">
                 <div class="giant-header mt-1">Spectator Rules</div>
                 <div class="space-y-3 mt-4">
-                    <div class="rule-card"><strong>Stay at least 30 feet away</strong> from players.</div>
-                    <div class="rule-card"><strong>No advice.</strong> Do not talk to players about strategy or club selection.</div>
+                    <div class="rule-card"><strong>Stay at least 30 feet away</strong> from players at all times.</div>
+                    <div class="rule-card"><strong>DO NOT</strong> give players advice.</div>
+                    <div class="rule-card"><strong>No Private Conversations:</strong> Avoid private discussions with your player as these will be viewed as giving advice during the round.</div>
+                    <div class="rule-card">Make sure cell phones are on <strong>silent</strong>.</div>
+                    <div class="rule-card"><strong>YOU ARE NOT A RULES OFFICIAL.</strong> The coaches are the rules officials.</div>
+                    <div class="rule-card"><strong>Don’t linger.</strong> There are other groups playing. If you stand around in the fairway or in front of the putting green this will hold up play.</div>
+                    <div class="rule-card">Please be <strong>courteous</strong> to all players and coaches.</div>
+                    <div class="rule-card"><strong>Respect</strong> the golf course.</div>
+                    <div class="rule-card bg-red-50 !border-red-500">
+                        <span class="text-red-700 font-bold">WARNING POLICY:</span> If spectators are not following the rules, they will be given one warning. After that the Region 5 coaches have the right to ask spectators that are not following rules to leave.
+                    </div>
                 </div>
             </div>
         </div>
@@ -334,7 +365,13 @@
             <div class="centered-container px-1">
                 <div class="giant-header mt-1">Pace of Play</div>
                 <div class="space-y-3 mt-4">
-                    <div class="rule-card"><strong>Walk quickly.</strong> Don't linger between greens and tees.</div>
+                    <div class="rule-card">The easiest way to stay on pace is to <strong>walk quickly between shots and holes</strong>. Visit as you walk.</div>
+                    <div class="rule-card"><strong>Play ready golf.</strong> Be ready to hit when it is your turn and remember you don't have to wait to be the furthest from the hole as long as you aren't disrupting another players' shot.</div>
+                    <div class="rule-card">You have <strong>3 minutes</strong> to search for lost or OB balls.</div>
+                    <div class="rule-card">If you aren't sure if you will find your ball, <strong>play a provisional</strong> and tell your playing partners that is what you are doing.</div>
+                    <div class="rule-card bg-blue-50 !border-blue-400">
+                        <span class="text-blue-800 font-bold">PRO TIP:</span> If you aren't waiting on the group in front of you at the tee box then you are likely behind pace.
+                    </div>
                 </div>
             </div>
         </div>
