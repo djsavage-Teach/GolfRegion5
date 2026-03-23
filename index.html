@@ -20,6 +20,24 @@
             transition: background-color 0.5s ease;
         }
 
+        /* --- Updated Collapse Logic --- */
+        header {
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                        opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                        backdrop-filter 0.4s ease;
+            transform-origin: top;
+            will-change: transform, opacity;
+        }
+
+        /* Collapsed state: Small, transparent, and non-interactive */
+        .header-collapsed {
+            transform: translateY(-20px) scaleY(0.8);
+            opacity: 0 !important;
+            pointer-events: none;
+            backdrop-filter: blur(0px) !important;
+            -webkit-backdrop-filter: blur(0px) !important;
+        }
+
         .active-tab { border-bottom: 4px solid var(--primary-color); color: var(--primary-color); }
         
         .glass-header {
@@ -256,7 +274,8 @@
         </div>
     </div>
 
-    <header class="glass-header text-white shadow-xl sticky top-0 z-50">
+    <!-- MAIN HEADER: Sticky and Responsive to Scroll -->
+    <header id="main-header" class="glass-header text-white shadow-xl sticky top-0 z-50">
         <div class="max-w-5xl mx-auto px-4 pt-3 pb-2">
             <div class="relative flex flex-col items-center">
                 <div class="absolute left-0 top-0 flex items-center pt-2">
@@ -382,6 +401,30 @@
         let currentTheme = localStorage.getItem('golf_theme') || "REGION";
         let warningShownThisSession = false;
         let cachedAllScores = [];
+
+        // --- NEW: Interactive Scroll Collapse Logic ---
+        let headerTimeout;
+        const header = document.getElementById('main-header');
+
+        window.addEventListener('scroll', () => {
+            const currentScrollY = window.scrollY;
+            
+            // Clear existing timeout - we only want it to reappear after a pause
+            clearTimeout(headerTimeout);
+
+            if (currentScrollY <= 20) {
+                // If we are at the very top, always show the header clearly
+                header.classList.remove('header-collapsed');
+            } else {
+                // While actively scrolling anywhere else, collapse and go transparent
+                header.classList.add('header-collapsed');
+
+                // Set a timeout to bring it back once scrolling STOPS for 1.5 seconds
+                headerTimeout = setTimeout(() => {
+                    header.classList.remove('header-collapsed');
+                }, 1500); 
+            }
+        });
 
         const SCHOOLS = [
             { id: "BOX ELDER", name: "BOX ELDER", url: "https://cmsv2-assets.apptegy.net/uploads/7672/logo/9154/bee_new.png", color: "#6b21a8" }, 
