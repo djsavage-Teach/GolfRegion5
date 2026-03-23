@@ -20,7 +20,6 @@
             transition: background-color 0.5s ease;
         }
 
-        /* --- Updated Collapse Logic --- */
         header {
             transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
                         opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
@@ -29,13 +28,10 @@
             will-change: transform, opacity;
         }
 
-        /* Collapsed state: Small, transparent, and non-interactive */
         .header-collapsed {
             transform: translateY(-20px) scaleY(0.8);
             opacity: 0 !important;
             pointer-events: none;
-            backdrop-filter: blur(0px) !important;
-            -webkit-backdrop-filter: blur(0px) !important;
         }
 
         .active-tab { border-bottom: 4px solid var(--primary-color); color: var(--primary-color); }
@@ -146,6 +142,7 @@
             border-radius: 4px;
             position: relative;
             overflow: hidden;
+            min-height: 200px;
         }
 
         .score-table { border-collapse: collapse; width: 100%; font-size: 11px; }
@@ -228,11 +225,28 @@
             justify-content: space-between;
             align-items: center;
         }
+        
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen text-gray-900 overflow-x-hidden">
 
-    <!-- Warning Modal -->
+    <div id="loading-global" class="modal-overlay hidden">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl text-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-4 border-green-700 mx-auto mb-4"></div>
+            <p id="loading-text" class="font-black uppercase italic tracking-widest text-gray-800">Loading Scorecard...</p>
+        </div>
+    </div>
+
     <div id="warning-modal" class="modal-overlay hidden">
         <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center animate-fadeInUp">
             <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -250,7 +264,6 @@
         </div>
     </div>
 
-    <!-- Scorecard/Team Modal -->
     <div id="scorecard-modal" class="modal-overlay hidden" onclick="closeScorecardModal(event)">
         <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full h-[85vh] flex flex-col overflow-hidden animate-fadeInUp" onclick="event.stopPropagation()">
             <div class="bg-stone-800 text-white p-4 flex justify-between items-center shrink-0">
@@ -266,7 +279,6 @@
                 </button>
             </div>
             <div id="modal-content" class="p-3 overflow-y-auto flex-1 bg-gray-50">
-                <!-- Content Injected Here -->
             </div>
             <div class="p-4 bg-white border-t flex justify-center shrink-0">
                 <button onclick="document.getElementById('scorecard-modal').classList.add('hidden')" class="px-8 py-3 bg-stone-800 text-white font-black uppercase text-xs tracking-widest rounded-lg">Close View</button>
@@ -274,7 +286,6 @@
         </div>
     </div>
 
-    <!-- MAIN HEADER: Sticky and Responsive to Scroll -->
     <header id="main-header" class="glass-header text-white shadow-xl sticky top-0 z-50">
         <div class="max-w-5xl mx-auto px-4 pt-3 pb-2">
             <div class="relative flex flex-col items-center">
@@ -311,27 +322,24 @@
     </header>
 
     <main id="main-content" class="max-w-7xl mx-auto p-2 sm:p-4 pb-24">
-        <!-- Individual Leaderboard -->
         <div id="view-leaderboard" class="view">
             <div class="centered-container"><div id="leaderboard-list" class="grid gap-1"></div></div>
         </div>
 
-        <!-- Team Leaderboard -->
         <div id="view-teams" class="view hidden">
             <div class="centered-container"><div id="teams-list" class="grid gap-1"></div></div>
         </div>
 
-        <!-- All Scores View -->
         <div id="view-scores" class="view hidden">
             <div class="centered-container">
                 <div class="mb-3 px-1">
-                    <input id="scores-search" type="text" onkeyup="filterPlayerScores(this.value)" placeholder="Search players or teams..." class="w-full p-3 rounded-xl border border-gray-300 shadow-inner outline-none focus:ring-2 focus:ring-green-500 text-base">
+                    <input id="scores-search" type="text" onkeyup="filterPlayerScores(this.value)" placeholder="Search players or teams..." class="w-full p-3 rounded-xl border border-gray-300 shadow-inner outline-none focus:ring-2 focus:ring-green-500 text-base mb-2">
+                    <div id="team-filter-buttons" class="flex flex-wrap items-center justify-center gap-2 py-1"></div>
                 </div>
                 <div id="scores-list" class="grid gap-1"></div>
             </div>
         </div>
 
-        <!-- Input View -->
         <div id="view-input" class="view hidden">
             <div class="max-w-5xl mx-auto">
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 mb-4">
@@ -342,13 +350,17 @@
                 </div>
                 <div class="clubhouse-card overflow-x-auto relative">
                     <div id="card-placeholder" class="p-16 text-center text-gray-400 font-medium italic">Select a group to enter scores</div>
+                    <div id="card-loading" class="loading-overlay hidden">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700 mb-2"></div>
+                        <span class="text-xs font-black uppercase text-gray-500 italic">Syncing Group Card...</span>
+                    </div>
                     <table id="scorecard-table" class="score-table hidden">
                         <thead>
                             <tr id="scorecard-header-row">
                                 <th id="scorecard-header-label" class="sticky-col">Player Name</th>
                                 <script>for(let i=1; i<=9; i++) document.write(`<th class="hole-header">${i}</th>`);</script>
                                 <th class="hole-header total-col">OUT</th>
-                                <script>for(let i=10; i<=18; i++) document.write(`<th class="hole-header">${i}</th>`);</script>
+                                <script>for(let i=1; i<=18; i++) if(i>9) document.write(`<th class="hole-header">${i}</th>`);</script>
                                 <th class="hole-header total-col">IN</th>
                                 <th class="hole-header total-col">TOT</th>
                             </tr>
@@ -359,7 +371,6 @@
             </div>
         </div>
 
-        <!-- Rules View -->
         <div id="view-rules" class="view hidden">
             <div class="centered-container px-1">
                 <div class="giant-header mt-1">Spectator Rules</div>
@@ -379,7 +390,6 @@
             </div>
         </div>
 
-        <!-- Pace View -->
         <div id="view-pace" class="view hidden">
             <div class="centered-container px-1">
                 <div class="giant-header mt-1">Pace of Play</div>
@@ -401,30 +411,7 @@
         let currentTheme = localStorage.getItem('golf_theme') || "REGION";
         let warningShownThisSession = false;
         let cachedAllScores = [];
-
-        // --- NEW: Interactive Scroll Collapse Logic ---
-        let headerTimeout;
-        const header = document.getElementById('main-header');
-
-        window.addEventListener('scroll', () => {
-            const currentScrollY = window.scrollY;
-            
-            // Clear existing timeout - we only want it to reappear after a pause
-            clearTimeout(headerTimeout);
-
-            if (currentScrollY <= 20) {
-                // If we are at the very top, always show the header clearly
-                header.classList.remove('header-collapsed');
-            } else {
-                // While actively scrolling anywhere else, collapse and go transparent
-                header.classList.add('header-collapsed');
-
-                // Set a timeout to bring it back once scrolling STOPS for 1.5 seconds
-                headerTimeout = setTimeout(() => {
-                    header.classList.remove('header-collapsed');
-                }, 1500); 
-            }
-        });
+        let groupMap = {}; // Maps player Name -> "Group X"
 
         const SCHOOLS = [
             { id: "BOX ELDER", name: "BOX ELDER", url: "https://cmsv2-assets.apptegy.net/uploads/7672/logo/9154/bee_new.png", color: "#6b21a8" }, 
@@ -435,6 +422,12 @@
             { id: "CLEARFIELD", name: "CLEARFIELD", url: "https://cmsv2-assets.apptegy.net/uploads/22258/file/3291122/77646c73-243c-4814-b16b-1a9a686cfc78.png", color: "#15803d" }, 
             { id: "ROY", name: "ROY", url: "https://cmsv2-assets.apptegy.net/uploads/25031/file/5081095/46ab505e-f612-4145-9e63-ec68e8782242.jpeg", color: "#eab308" } 
         ];
+
+        const header = document.getElementById('main-header');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 20) header.classList.add('header-collapsed');
+            else header.classList.remove('header-collapsed');
+        });
 
         function setTheme(schoolId) {
             currentTheme = schoolId;
@@ -461,12 +454,38 @@
             if(e.target.id === 'scorecard-modal') document.getElementById('scorecard-modal').classList.add('hidden');
         }
 
+        async function jumpToPlayerGroupEntry(playerName) {
+            const overlay = document.getElementById('loading-global');
+            overlay.classList.remove('hidden');
+            document.getElementById('scorecard-modal').classList.add('hidden');
+            
+            if (!warningShownThisSession) {
+                document.getElementById('warning-modal').classList.remove('hidden');
+            }
+            
+            setView('input');
+            const pKey = playerName.trim().toUpperCase();
+            const select = document.getElementById('groupSelect');
+
+            if (select.options.length <= 1) await initGroupDropdown();
+
+            const groupName = groupMap[pKey];
+            if (groupName) {
+                const targetVal = Array.from(select.options).find(opt => opt.value.startsWith(groupName))?.value;
+                if (targetVal) {
+                    select.value = targetVal;
+                    await loadGroupScorecard();
+                }
+            }
+            overlay.classList.add('hidden');
+        }
+
         async function openTeamView(targetName) {
             const modal = document.getElementById('scorecard-modal');
             const title = document.getElementById('modal-title');
             const content = document.getElementById('modal-content');
-            
             const searchStr = targetName.replace(" TEAM", "").trim().toUpperCase();
+            
             title.innerText = searchStr;
             modal.classList.remove('hidden');
 
@@ -477,11 +496,11 @@
 
             const roster = cachedAllScores.filter(p => {
                 const pName = String(p[2] || "").toUpperCase();
-                return pName.includes(searchStr) && !pName.includes("TEAM");
+                return pName.includes(searchStr) && !pName.includes("TEAM") && !pName.includes("PLAYER NAME") && !pName.includes("PAR");
             });
 
             if (roster.length === 0) {
-                content.innerHTML = `<div class="p-16 text-center"><p class="font-black uppercase text-stone-400 italic">No Player Data Found</p></div>`;
+                content.innerHTML = `<div class="p-16 text-center text-stone-400 font-bold uppercase">No Player Data</div>`;
                 return;
             }
 
@@ -495,9 +514,7 @@
                     <div class="roster-player-header">
                         <span class="flex items-center">${getLogoHtml(name)} ${name}</span>
                         <div class="text-right">
-                            <div class="text-xl font-black text-green-700 leading-none">
-                                ${ isFinished ? p[23] : (p[25] || '-') }
-                            </div>
+                            <div class="text-xl font-black text-green-700 leading-none">${ isFinished ? p[23] : (p[25] || '-') }</div>
                             <div class="text-[9px] opacity-50 font-bold uppercase">Thru ${thruVal}</div>
                         </div>
                     </div>
@@ -505,18 +522,13 @@
                         <table class="score-table">
                             <tr>
                                 <th class="hole-header">Hole</th>
-                                ${[1,2,3,4,5,6,7,8,9].map(h => `<th class="hole-header">${h}</th>`).join('')}
-                                <th class="hole-header total-col">OUT</th>
-                                ${[10,11,12,13,14,15,16,17,18].map(h => `<th class="hole-header">${h}</th>`).join('')}
-                                <th class="hole-header total-col">IN</th>
+                                ${[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18].map(h => `<th class="hole-header">${h}</th>`).join('')}
                                 <th class="hole-header total-col">TOT</th>
                             </tr>
                             <tr>
                                 <td class="bg-stone-50 font-bold">Score</td>
                                 ${[1,2,3,4,5,6,7,8,9].map(h => `<td>${p[h+2] || ''}</td>`).join('')}
-                                <td class="total-col">${p[12] || '-'}</td>
                                 ${[10,11,12,13,14,15,16,17,18].map(h => `<td>${p[h+3] || ''}</td>`).join('')}
-                                <td class="total-col">${p[22] || '-'}</td>
                                 <td class="total-col !bg-stone-800 !text-white">${p[23] || '-'}</td>
                             </tr>
                         </table>
@@ -525,8 +537,32 @@
             }).join('');
         }
 
-        async function openScorecard(playerName) {
-            openTeamView(playerName);
+        async function openScorecard(playerName) { openTeamView(playerName); }
+
+        /**
+         * FIXED MAPPING LOGIC
+         * Data blocks are 5 rows:
+         * Rows 0-3: Players
+         * Row 4: Group Header
+         * Rows 5-8: Players
+         * Row 9: Group Header
+         */
+        async function buildGlobalGroupMap(data) {
+            groupMap = {};
+            for (let i = 0; i < 16; i++) {
+                const groupNum = i + 1;
+                const playerStartRow = i * 5;
+                // Look at the 4 player slots in this specific block
+                for (let r = 0; r < 4; r++) {
+                    const rowData = data[playerStartRow + r];
+                    if (rowData && rowData[2]) {
+                        const pName = String(rowData[2]).trim().toUpperCase();
+                        if (pName !== "" && pName !== "PLAYER NAME") {
+                            groupMap[pName] = `Group ${groupNum}`;
+                        }
+                    }
+                }
+            }
         }
 
         async function initGroupDropdown() {
@@ -534,11 +570,16 @@
             try {
                 const res = await fetch(`${DEPLOY_URL}?action=getAllScores`);
                 const rawData = await res.json();
+                
+                await buildGlobalGroupMap(rawData);
+                
                 let optionsHtml = '<option value="">-- Select Group --</option>';
-                for(let i=1; i<=16; i++) {
-                    const holeRow = rawData[((i-1)*5)+4];
-                    const hole = holeRow ? holeRow[0] : "...";
-                    optionsHtml += `<option value="Group ${i}">Group ${i} - Starting Hole ${hole}</option>`;
+                for(let i=0; i<16; i++) {
+                    const groupNum = i + 1;
+                    const groupHeaderIdx = 4 + (i * 5); 
+                    const headerRow = rawData[groupHeaderIdx];
+                    const startHole = (headerRow && headerRow[0]) ? headerRow[0] : "?";
+                    optionsHtml += `<option value="Group ${groupNum}">Group ${groupNum} - Starting Hole ${startHole}</option>`;
                 }
                 select.innerHTML = optionsHtml;
             } catch (e) { select.innerHTML = '<option value="">-- Error --</option>'; }
@@ -549,24 +590,29 @@
             const groupVal = groupSelect.value;
             const table = document.getElementById('scorecard-table');
             const placeholder = document.getElementById('card-placeholder');
+            const loading = document.getElementById('card-loading');
             const tbody = document.getElementById('player-rows');
             
             if (!groupVal) {
                 table.classList.add('hidden');
                 placeholder.classList.remove('hidden');
+                loading.classList.add('hidden');
                 return;
             }
 
-            placeholder.innerHTML = `<div class="p-16 flex flex-col items-center"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700"></div></div>`;
-            placeholder.classList.remove('hidden');
-            table.classList.add('hidden');
+            loading.classList.remove('hidden');
+            placeholder.classList.add('hidden');
+            table.classList.add('opacity-40'); 
 
             const groupTab = groupVal.split(' - ')[0].replace("Group ", "G");
 
             try {
-                const namesRes = await fetch(`${DEPLOY_URL}?action=getGroupPlayers&groupTab=${encodeURIComponent(groupTab)}`);
+                const [namesRes, scoresRes] = await Promise.all([
+                    fetch(`${DEPLOY_URL}?action=getGroupPlayers&groupTab=${encodeURIComponent(groupTab)}`),
+                    fetch(`${DEPLOY_URL}?action=getAllScores`)
+                ]);
+                
                 const groupNames = await namesRes.json();
-                const scoresRes = await fetch(`${DEPLOY_URL}?action=getAllScores`);
                 const allScoresRaw = await scoresRes.json();
 
                 tbody.innerHTML = groupNames.map(name => {
@@ -590,10 +636,14 @@
                     return rowHtml;
                 }).join('');
 
-                placeholder.classList.add('hidden');
-                table.classList.remove('hidden');
+                loading.classList.add('hidden');
+                table.classList.remove('hidden', 'opacity-40');
                 groupNames.forEach(name => calculateTotals(name));
-            } catch (e) { placeholder.innerHTML = `<div class="text-red-500 font-bold p-16">Sync Error</div>`; }
+            } catch (e) { 
+                loading.classList.add('hidden');
+                placeholder.innerHTML = `<div class="text-red-500 font-bold p-16">Sync Error</div>`; 
+                placeholder.classList.remove('hidden');
+            }
         }
 
         async function autoSaveScore(input) {
@@ -602,10 +652,8 @@
             const score = input.value;
             const groupSelect = document.getElementById('groupSelect');
             const groupTab = groupSelect.value.split(' - ')[0].replace("Group ", "G");
-            
             input.classList.add('syncing');
             calculateTotals(player);
-
             try {
                 const payload = { groupTab, holeNum, scores: { [player]: score || "" } };
                 await fetch(DEPLOY_URL, { method: 'POST', body: JSON.stringify(payload), mode: 'no-cors' });
@@ -649,44 +697,35 @@
         async function fetchLeaderboard(type = 'individual') {
             const listId = type === 'individual' ? 'leaderboard-list' : 'teams-list';
             const list = document.getElementById(listId);
-
             try {
                 if (cachedAllScores.length === 0) { await fetchPlayerScores(); }
-
                 if (type === 'team') {
                     let teamResults = SCHOOLS.map(school => {
                         const roster = cachedAllScores.filter(player => {
                             const pName = String(player[2] || "").toUpperCase();
-                            return pName.includes(school.name) && !pName.includes("TEAM");
+                            return pName.includes(school.name) && !pName.includes("TEAM") && pName !== "PLAYER NAME";
                         });
-
                         const playerData = roster.map(p => ({
                             toPar: parseInt(p[25]),
                             total: parseInt(p[23]),
                             thru: String(p[24] || "0").trim().toUpperCase()
                         })).filter(d => !isNaN(d.toPar) && !isNaN(d.total));
-
                         playerData.sort((a, b) => a.toPar - b.toPar);
-                        
                         const top4 = playerData.slice(0, 4);
                         const allFinished = roster.length > 0 && roster.every(p => {
                             const t = String(p[24] || "0").trim().toUpperCase();
                             return t === '18' || t === 'F';
                         });
-
                         let teamToPar = null;
                         let teamTotalAbs = null;
-                        
                         if (top4.length >= 4) {
                             teamToPar = top4.reduce((sum, d) => sum + d.toPar, 0);
                             teamTotalAbs = top4.reduce((sum, d) => sum + d.total, 0);
                         }
-
                         const maxThru = roster.reduce((max, p) => {
                             const t = parseInt(p[24]) || 0;
                             return t > max ? t : max;
                         }, 0);
-
                         return {
                             name: school.name + " TEAM",
                             school: school,
@@ -697,29 +736,22 @@
                             allFinished: allFinished
                         };
                     });
-
                     teamResults.sort((a, b) => {
                         if (a.playerCount < 4 && b.playerCount < 4) return 0;
                         if (a.playerCount < 4) return 1;
                         if (b.playerCount < 4) return -1;
                         return (a.toPar ?? 999) - (b.toPar ?? 999);
                     });
-
                     let currentRank = 1;
                     list.innerHTML = `<div class="giant-header mt-1">Team Leaders</div>` + 
                         teamResults.map((team, i) => {
                             let rank = '-';
                             if (team.playerCount >= 4) {
-                                if (i > 0 && team.toPar === teamResults[i-1].toPar) {
-                                } else {
-                                    currentRank = i + 1;
-                                }
+                                if (!(i > 0 && team.toPar === teamResults[i-1].toPar)) currentRank = i + 1;
                                 rank = currentRank;
                             }
-
                             const displayScore = team.playerCount < 4 ? '-' : (team.allFinished ? team.total : (team.toPar ?? '-'));
                             const nameEscaped = team.name.replace(/'/g, "\\'");
-
                             return `<div class="bg-white py-2.5 px-3 rounded-xl shadow-sm border border-gray-200 lb-grid row-animate" style="border-left: 4px solid ${team.school.color}; animation-delay: ${i * 0.05}s">
                                 <div class="rank-cell">${rank}</div>
                                 <div class="name-cell">${getLogoHtml(team.name)} <span class="name-text" onclick="openScorecard('${nameEscaped}')">${team.name}</span></div>
@@ -740,9 +772,7 @@
                     total: p[23],
                     thru: String(p[24] || "0").trim().toUpperCase() 
                 }));
-
                 players.sort((a, b) => a.toPar - b.toPar);
-
                 let currentRank = 1;
                 let rankedPlayers = [];
                 for (let i = 0; i < players.length; i++) {
@@ -756,7 +786,6 @@
                         const match = SCHOOLS.find(s => p.name.toUpperCase().includes(s.name));
                         const nameEscaped = p.name.replace(/'/g, "\\'");
                         const displayScore = (p.thru === '18' || p.thru === 'F') ? p.total : p.toPar;
-
                         return `<div class="bg-white py-2.5 px-3 rounded-xl shadow-sm border border-gray-200 lb-grid row-animate" style="border-left: 4px solid ${match ? match.color : '#eee'}; animation-delay: ${i * 0.05}s">
                             <div class="rank-cell">${p.rank}</div>
                             <div class="name-cell">${getLogoHtml(p.name)} <span class="name-text" onclick="openScorecard('${nameEscaped}')">${p.name}</span></div>
@@ -768,36 +797,71 @@
         }
 
         async function fetchPlayerScores() {
-            const list = document.getElementById('scores-list');
             try {
                 const res = await fetch(`${DEPLOY_URL}?action=getAllScores`);
-                const data = await res.json();
-                cachedAllScores = data;
-                const playerRows = data.filter(p => {
-                    const name = String(p[2] || "").toUpperCase();
-                    return name && name !== "PLAYER NAME" && name !== "PAR" && SCHOOLS.some(s => name.includes(s.name));
-                });
+                cachedAllScores = await res.json();
+                
+                await buildGlobalGroupMap(cachedAllScores);
+                
+                renderPlayerScores();
+                renderFilterButtons();
+            } catch (e) { console.error("Score fetch failed", e); }
+        }
 
-                list.innerHTML = `<div class="text-[10px] font-black uppercase text-gray-400 mb-2 px-1 grid grid-cols-[1fr_55px_45px]"><span>Player</span><span class="text-center">Score</span><span class="text-right">Thru</span></div>` + playerRows.map((p, i) => {
-                    const match = SCHOOLS.find(s => String(p[2]).toUpperCase().includes(s.name));
-                    const nameEscaped = String(p[2]).replace(/'/g, "\\'");
-                    const thru = String(p[24] || "-").trim().toUpperCase();
-                    const displayScore = (thru === '18' || thru === 'F') ? p[23] : (p[25] || '-');
+        function renderFilterButtons() {
+            const btnContainer = document.getElementById('team-filter-buttons');
+            if (!btnContainer) return;
+            let html = `<button onclick="filterPlayerScores('')" class="bg-stone-200 text-stone-700 text-[10px] font-black px-3 py-2 rounded-lg hover:bg-stone-300 transition-colors uppercase">ALL</button>`;
+            html += SCHOOLS.map(s => {
+                return `<button onclick="filterPlayerScores('${s.name}')" class="bg-white p-1 rounded-lg border-2 border-transparent hover:border-gray-300 transition-all shadow-sm">
+                    <img src="${s.url}" alt="${s.name}" class="w-8 h-8 object-contain">
+                </button>`;
+            }).join('');
+            btnContainer.innerHTML = html;
+        }
 
-                    return `<div class="all-scores-item row-animate" style="border-left: 4px solid ${match ? match.color : '#eee'}; animation-delay: ${i*0.02}s">
-                            <span class="font-bold uppercase flex items-center overflow-hidden cursor-pointer" onclick="openScorecard('${nameEscaped}')">
-                                ${getLogoHtml(p[2])} <span class="truncate text-[0.85rem] hover:underline">${p[2]}</span>
-                            </span>
-                            <span class="text-center text-lg font-black text-green-800">${displayScore}</span>
-                            <span class="text-right text-xs font-bold text-gray-400">${thru}</span>
-                        </div>`;
-                }).join('');
-            } catch (e) { }
+        function renderPlayerScores() {
+            const list = document.getElementById('scores-list');
+            if (!cachedAllScores || cachedAllScores.length === 0) return;
+            let playerRows = cachedAllScores.filter(p => {
+                const name = String(p[2] || "").toUpperCase();
+                return name && name !== "PLAYER NAME" && name !== "PAR" && SCHOOLS.some(s => name.includes(s.name));
+            }).map(p => ({
+                row: p,
+                name: p[2],
+                toPar: parseInt(p[25]) || 0,
+                total: p[23],
+                thru: String(p[24] || "-").trim().toUpperCase()
+            }));
+            playerRows.sort((a, b) => a.toPar - b.toPar);
+            const rankMap = new Map();
+            let currentRank = 1;
+            for(let i=0; i<playerRows.length; i++) {
+                if(i > 0 && playerRows[i].toPar > playerRows[i-1].toPar) currentRank = i + 1;
+                const isTied = (i > 0 && playerRows[i].toPar === playerRows[i - 1].toPar) || (i < playerRows.length - 1 && playerRows[i].toPar === playerRows[i + 1].toPar);
+                rankMap.set(playerRows[i].name, isTied ? `T${currentRank}` : currentRank);
+            }
+            list.innerHTML = `<div class="text-[10px] font-black uppercase text-gray-400 mb-2 px-1 grid grid-cols-[1fr_55px_45px]"><span>Player</span><span class="text-center">Score</span><span class="text-right">Thru</span></div>` + playerRows.map((p, i) => {
+                const match = SCHOOLS.find(s => p.name.toUpperCase().includes(s.name));
+                const nameEscaped = p.name.replace(/'/g, "\\'");
+                const rank = rankMap.get(p.name);
+                const displayScore = (p.thru === '18' || p.thru === 'F') ? p.total : p.toPar;
+                return `<div class="all-scores-item row-animate" style="border-left: 4px solid ${match ? match.color : '#eee'}; animation-delay: ${i*0.02}s">
+                        <span class="font-bold uppercase flex items-center overflow-hidden cursor-pointer" onclick="openScorecard('${nameEscaped}')">
+                            <span class="text-[10px] font-black text-gray-400 w-6 shrink-0">#${rank}</span>
+                            ${getLogoHtml(p.name)} <span class="truncate text-[0.85rem] hover:underline">${p.name}</span>
+                        </span>
+                        <span class="text-center text-lg font-black text-green-800">${displayScore}</span>
+                        <span class="text-right text-xs font-bold text-gray-400">${p.thru}</span>
+                    </div>`;
+            }).join('');
         }
 
         function filterPlayerScores(q) {
-            const items = document.querySelectorAll('.view:not(.hidden) .row-animate');
-            const term = q.toLowerCase();
+            const items = document.querySelectorAll('#scores-list .all-scores-item');
+            const searchInput = document.getElementById('scores-search');
+            if (q !== undefined && searchInput.value !== q) searchInput.value = q;
+            const term = (q || '').toLowerCase();
             items.forEach(i => i.style.display = i.innerText.toLowerCase().includes(term) ? '' : 'none');
         }
 
@@ -814,6 +878,7 @@
             setTheme(currentTheme);
             fetchLeaderboard('individual'); 
             fetchPlayerScores(); 
+            initGroupDropdown(); 
         };
     </script>
 </body>
