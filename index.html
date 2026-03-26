@@ -270,7 +270,7 @@
                 <div class="flex items-center space-x-3">
                     <div id="modal-logo-container" class="bg-white p-1 rounded"></div>
                     <div>
-                        <h3 id="modal-title" class="text-lg font-black uppercase italic leading-none">Team View</h3>
+                        <h3 id="modal-title" class="text-lg font-black uppercase italic leading-none">View</h3>
                         <p id="modal-subtitle" class="text-[10px] font-bold uppercase tracking-widest opacity-70 mt-1">Region 5 Hub</p>
                     </div>
                 </div>
@@ -311,26 +311,18 @@
         </div>
         <nav class="bg-white border-b shadow-sm">
             <div class="flex items-end justify-start sm:justify-center text-gray-500 text-[10px] sm:text-sm font-bold uppercase overflow-x-auto px-2 whitespace-nowrap">
-                <button onclick="setView('leaderboard')" id="tab-leaderboard" class="px-3 sm:px-5 py-3 active-tab transition-all">Individual</button>
+                <button onclick="setView('scores')" id="tab-scores" class="px-3 sm:px-5 py-3 transition-all active-tab">Individuals</button>
                 <button onclick="setView('teams')" id="tab-teams" class="px-3 sm:px-5 py-3 transition-all">Teams</button>
-                <button onclick="setView('scores')" id="tab-scores" class="px-3 sm:px-5 py-3 transition-all">All Scores</button>
                 <button onclick="setView('input')" id="tab-input" class="px-3 sm:px-5 py-3 transition-all">Score Entry</button>
-                <button onclick="setView('rules')" id="tab-rules" class="px-3 sm:px-5 py-3 transition-all">Rules</button>
+                <button onclick="setView('local-rules')" id="tab-local-rules" class="px-3 sm:px-5 py-3 transition-all">Local Rules</button>
+                <button onclick="setView('rules')" id="tab-rules" class="px-3 sm:px-5 py-3 transition-all">Spectators</button>
                 <button onclick="setView('pace')" id="tab-pace" class="px-3 sm:px-5 py-3 transition-all">Pace</button>
             </div>
         </nav>
     </header>
 
     <main id="main-content" class="max-w-7xl mx-auto p-2 sm:p-4 pb-24">
-        <div id="view-leaderboard" class="view">
-            <div class="centered-container"><div id="leaderboard-list" class="grid gap-1"></div></div>
-        </div>
-
-        <div id="view-teams" class="view hidden">
-            <div class="centered-container"><div id="teams-list" class="grid gap-1"></div></div>
-        </div>
-
-        <div id="view-scores" class="view hidden">
+        <div id="view-scores" class="view">
             <div class="centered-container">
                 <div class="mb-3 px-1">
                     <input id="scores-search" type="text" onkeyup="filterPlayerScores(this.value)" placeholder="Search players or teams..." class="w-full p-3 rounded-xl border border-gray-300 shadow-inner outline-none focus:ring-2 focus:ring-green-500 text-base mb-2">
@@ -338,6 +330,10 @@
                 </div>
                 <div id="scores-list" class="grid gap-1"></div>
             </div>
+        </div>
+
+        <div id="view-teams" class="view hidden">
+            <div class="centered-container"><div id="teams-list" class="grid gap-1"></div></div>
         </div>
 
         <div id="view-input" class="view hidden">
@@ -367,6 +363,26 @@
                         </thead>
                         <tbody id="player-rows"></tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-local-rules" class="view hidden">
+            <div class="centered-container px-1">
+                <div class="giant-header mt-1">Local Rules (Crane Field)</div>
+                <div class="space-y-3 mt-4">
+                    <div class="rule-card">
+                        COURSE IS GETTING BETTER BUT IN ROUGH CONDITION. FOLLOW A LIFT, CLEAN AND PLACE FOR ALL HOLES, LACK OF GRASS, ETC.
+                    </div>
+                    <div class="rule-card">
+                        SPRINKLER CONSTRUCTION LINES ARE FREE RELIEF. (WILL MAINLY BE FOUND ON THE BACK 9 (holes 15 & 16).
+                    </div>
+                    <div class="rule-card">
+                        CART PATH AND ROPED AREAS ARE FREE RELIEF.
+                    </div>
+                    <div class="rule-card">
+                        CAT TAILS, BACK YARDS AND THE RANGE ARE O.B.
+                    </div>
                 </div>
             </div>
         </div>
@@ -411,7 +427,7 @@
         let currentTheme = localStorage.getItem('golf_theme') || "REGION";
         let warningShownThisSession = false;
         let cachedAllScores = [];
-        let groupMap = {}; // Maps player Name -> "Group X"
+        let groupMap = {}; 
 
         const SCHOOLS = [
             { id: "BOX ELDER", name: "BOX ELDER", url: "https://cmsv2-assets.apptegy.net/uploads/7672/logo/9154/bee_new.png", color: "#6b21a8" }, 
@@ -539,20 +555,11 @@
 
         async function openScorecard(playerName) { openTeamView(playerName); }
 
-        /**
-         * FIXED MAPPING LOGIC
-         * Data blocks are 5 rows:
-         * Rows 0-3: Players
-         * Row 4: Group Header
-         * Rows 5-8: Players
-         * Row 9: Group Header
-         */
         async function buildGlobalGroupMap(data) {
             groupMap = {};
             for (let i = 0; i < 16; i++) {
                 const groupNum = i + 1;
                 const playerStartRow = i * 5;
-                // Look at the 4 player slots in this specific block
                 for (let r = 0; r < 4; r++) {
                     const rowData = data[playerStartRow + r];
                     if (rowData && rowData[2]) {
@@ -675,10 +682,10 @@
             });
             const outEl = document.getElementById(`out-${idBase}`);
             const inEl = document.getElementById(`in-${idBase}`);
-            const totEl = document.getElementById(`tot-${idBase}`);
+            const Math_totEl = document.getElementById(`tot-${idBase}`);
             if(outEl) outEl.innerText = outC > 0 ? out : '-';
             if(inEl) inEl.innerText = inC > 0 ? inT : '-';
-            if(totEl) totEl.innerText = (outC+inC) > 0 ? (out+inT) : '-';
+            if(Math_totEl) Math_totEl.innerText = (outC+inC) > 0 ? (out+inT) : '-';
         }
 
         function setView(view) {
@@ -690,107 +697,73 @@
             document.querySelectorAll('nav button').forEach(el => el.classList.remove('active-tab'));
             const activeBtn = document.getElementById(`tab-${view}`);
             if (activeBtn) activeBtn.classList.add('active-tab');
-            if (['leaderboard', 'teams', 'scores'].includes(view)) refreshData();
+            if (['teams', 'scores'].includes(view)) refreshData();
             if (view === 'input') initGroupDropdown();
         }
 
-        async function fetchLeaderboard(type = 'individual') {
-            const listId = type === 'individual' ? 'leaderboard-list' : 'teams-list';
+        async function fetchLeaderboard(type = 'team') {
+            const listId = 'teams-list';
             const list = document.getElementById(listId);
             try {
                 if (cachedAllScores.length === 0) { await fetchPlayerScores(); }
-                if (type === 'team') {
-                    let teamResults = SCHOOLS.map(school => {
-                        const roster = cachedAllScores.filter(player => {
-                            const pName = String(player[2] || "").toUpperCase();
-                            return pName.includes(school.name) && !pName.includes("TEAM") && pName !== "PLAYER NAME";
-                        });
-                        const playerData = roster.map(p => ({
-                            toPar: parseInt(p[25]),
-                            total: parseInt(p[23]),
-                            thru: String(p[24] || "0").trim().toUpperCase()
-                        })).filter(d => !isNaN(d.toPar) && !isNaN(d.total));
-                        playerData.sort((a, b) => a.toPar - b.toPar);
-                        const top4 = playerData.slice(0, 4);
-                        const allFinished = roster.length > 0 && roster.every(p => {
-                            const t = String(p[24] || "0").trim().toUpperCase();
-                            return t === '18' || t === 'F';
-                        });
-                        let teamToPar = null;
-                        let teamTotalAbs = null;
-                        if (top4.length >= 4) {
-                            teamToPar = top4.reduce((sum, d) => sum + d.toPar, 0);
-                            teamTotalAbs = top4.reduce((sum, d) => sum + d.total, 0);
-                        }
-                        const maxThru = roster.reduce((max, p) => {
-                            const t = parseInt(p[24]) || 0;
-                            return t > max ? t : max;
-                        }, 0);
-                        return {
-                            name: school.name + " TEAM",
-                            school: school,
-                            toPar: teamToPar,
-                            total: teamTotalAbs,
-                            thru: allFinished ? 'F' : maxThru,
-                            playerCount: roster.length,
-                            allFinished: allFinished
-                        };
+                
+                let teamResults = SCHOOLS.map(school => {
+                    const roster = cachedAllScores.filter(player => {
+                        const pName = String(player[2] || "").toUpperCase();
+                        return pName.includes(school.name) && !pName.includes("TEAM") && pName !== "PLAYER NAME";
                     });
-                    teamResults.sort((a, b) => {
-                        if (a.playerCount < 4 && b.playerCount < 4) return 0;
-                        if (a.playerCount < 4) return 1;
-                        if (b.playerCount < 4) return -1;
-                        return (a.toPar ?? 999) - (b.toPar ?? 999);
+                    const playerData = roster.map(p => ({
+                        toPar: parseInt(p[25]),
+                        total: parseInt(p[23]),
+                        thru: String(p[24] || "0").trim().toUpperCase()
+                    })).filter(d => !isNaN(d.toPar) && !isNaN(d.total));
+                    playerData.sort((a, b) => a.toPar - b.toPar);
+                    const top4 = playerData.slice(0, 4);
+                    const allFinished = roster.length > 0 && roster.every(p => {
+                        const t = String(p[24] || "0").trim().toUpperCase();
+                        return t === '18' || t === 'F';
                     });
-                    let currentRank = 1;
-                    list.innerHTML = `<div class="giant-header mt-1">Team Leaders</div>` + 
-                        teamResults.map((team, i) => {
-                            let rank = '-';
-                            if (team.playerCount >= 4) {
-                                if (!(i > 0 && team.toPar === teamResults[i-1].toPar)) currentRank = i + 1;
-                                rank = currentRank;
-                            }
-                            const displayScore = team.playerCount < 4 ? '-' : (team.allFinished ? team.total : (team.toPar ?? '-'));
-                            const nameEscaped = team.name.replace(/'/g, "\\'");
-                            return `<div class="bg-white py-2.5 px-3 rounded-xl shadow-sm border border-gray-200 lb-grid row-animate" style="border-left: 4px solid ${team.school.color}; animation-delay: ${i * 0.05}s">
-                                <div class="rank-cell">${rank}</div>
-                                <div class="name-cell">${getLogoHtml(team.name)} <span class="name-text" onclick="openScorecard('${nameEscaped}')">${team.name}</span></div>
-                                <div class="score-cell">${displayScore}</div>
-                                <div class="holes-cell">${team.thru || '-'}</div>
-                            </div>`;
-                        }).join('');
-                    return;
-                }
-
-                let players = cachedAllScores.filter(p => {
-                    const name = String(p[2] || "").toUpperCase();
-                    const score = parseInt(p[25]);
-                    return name && name !== "PLAYER NAME" && name !== "PAR" && !name.includes("TEAM") && !isNaN(score);
-                }).map(p => ({ 
-                    name: p[2], 
-                    toPar: parseInt(p[25]), 
-                    total: p[23],
-                    thru: String(p[24] || "0").trim().toUpperCase() 
-                }));
-                players.sort((a, b) => a.toPar - b.toPar);
+                    let teamToPar = null;
+                    let teamTotalAbs = null;
+                    if (top4.length >= 4) {
+                        teamToPar = top4.reduce((sum, d) => sum + d.toPar, 0);
+                        teamTotalAbs = top4.reduce((sum, d) => sum + d.total, 0);
+                    }
+                    const maxThru = roster.reduce((max, p) => {
+                        const t = parseInt(p[24]) || 0;
+                        return t > max ? t : max;
+                    }, 0);
+                    return {
+                        name: school.name + " TEAM",
+                        school: school,
+                        toPar: teamToPar,
+                        total: teamTotalAbs,
+                        thru: allFinished ? 'F' : maxThru,
+                        playerCount: roster.length,
+                        allFinished: allFinished
+                    };
+                });
+                teamResults.sort((a, b) => {
+                    if (a.playerCount < 4 && b.playerCount < 4) return 0;
+                    if (a.playerCount < 4) return 1;
+                    if (b.playerCount < 4) return -1;
+                    return (a.toPar ?? 999) - (b.toPar ?? 999);
+                });
                 let currentRank = 1;
-                let rankedPlayers = [];
-                for (let i = 0; i < players.length; i++) {
-                    if (i > 0 && players[i].toPar > players[i - 1].toPar) currentRank = i + 1;
-                    let isTied = (i > 0 && players[i].toPar === players[i - 1].toPar) || (i < players.length - 1 && players[i].toPar === players[i + 1].toPar);
-                    rankedPlayers.push({ ...players[i], rank: isTied ? `T${currentRank}` : currentRank });
-                }
-
-                list.innerHTML = `<div class="giant-header mt-1">Individual Leaders</div>` + 
-                    rankedPlayers.slice(0, 15).map((p, i) => {
-                        const match = SCHOOLS.find(s => p.name.toUpperCase().includes(s.name));
-                        const nameEscaped = p.name.replace(/'/g, "\\'");
-                        const displayScore = (p.thru === '18' || p.thru === 'F') ? p.total : p.toPar;
-                        return `<div class="bg-white py-2.5 px-3 rounded-xl shadow-sm border border-gray-200 lb-grid row-animate" style="border-left: 4px solid ${match ? match.color : '#eee'}; animation-delay: ${i * 0.05}s">
-                            <div class="rank-cell">${p.rank}</div>
-                            <div class="name-cell">${getLogoHtml(p.name)} <span class="name-text" onclick="openScorecard('${nameEscaped}')">${p.name}</span></div>
+                list.innerHTML = `<div class="giant-header mt-1">Team Leaders</div>` + 
+                    teamResults.map((team, i) => {
+                        let rank = '-';
+                        if (team.playerCount >= 4) {
+                            if (!(i > 0 && team.toPar === teamResults[i-1].toPar)) currentRank = i + 1;
+                            rank = currentRank;
+                        }
+                        const displayScore = team.playerCount < 4 ? '-' : (team.allFinished ? team.total : (team.toPar ?? '-'));
+                        const nameEscaped = team.name.replace(/'/g, "\\'");
+                        return `<div class="bg-white py-2.5 px-3 rounded-xl shadow-sm border border-gray-200 lb-grid row-animate" style="border-left: 4px solid ${team.school.color}; animation-delay: ${i * 0.05}s">
+                            <div class="rank-cell">${rank}</div>
+                            <div class="name-cell">${getLogoHtml(team.name)} <span class="name-text" onclick="openScorecard('${nameEscaped}')">${team.name}</span></div>
                             <div class="score-cell">${displayScore}</div>
-                            <div class="holes-cell">${p.thru}</div>
+                            <div class="holes-cell">${team.thru || '-'}</div>
                         </div>`;
                     }).join('');
             } catch (e) { list.innerHTML = `<div class="p-10 text-center">Error Loading</div>`; }
@@ -867,7 +840,6 @@
 
         function refreshData() {
             const active = document.querySelector('nav button.active-tab')?.id;
-            if (active === 'tab-leaderboard') fetchLeaderboard('individual');
             if (active === 'tab-teams') fetchLeaderboard('team');
             if (active === 'tab-scores') fetchPlayerScores();
         }
@@ -876,7 +848,7 @@
             const banner = document.getElementById('school-logo-banner');
             banner.innerHTML = SCHOOLS.map(s => `<img src="${s.url}" onclick="setTheme('${s.id}')" class="school-logo-btn shadow-sm" onerror="${imgError}">`).join('');
             setTheme(currentTheme);
-            fetchLeaderboard('individual'); 
+            setView('scores'); // Default landing page
             fetchPlayerScores(); 
             initGroupDropdown(); 
         };
