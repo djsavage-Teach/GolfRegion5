@@ -146,28 +146,32 @@
         }
 
         .score-table { border-collapse: collapse; width: 100%; font-size: 11px; }
-        .score-table th, .score-table td { border: 1px solid #d1c7b7; padding: 4px 2px; text-align: center; }
+        .score-table th, .score-table td { border: 1px solid #d1c7b7; padding: 0; text-align: center; }
 
         .sticky-col {
             position: sticky;
             left: 0;
             background-color: var(--card-cream);
-            z-index: 10;
+            z-index: 20;
             border-right: 2px solid #d1c7b7 !important;
-            min-width: 140px;
+            width: 160px;
+            min-width: 160px;
+            max-width: 160px;
             text-align: left !important;
-            padding-left: 10px !important;
+            padding: 4px 8px !important;
             font-weight: 800;
             text-transform: uppercase;
             font-size: 11px;
             white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .hole-header { background-color: #f1ede4; font-size: 10px; font-weight: 900; color: #7c7263; min-width: 28px; }
+        .hole-header { background-color: #f1ede4; font-size: 10px; font-weight: 900; color: #7c7263; width: 45px; min-width: 45px; height: 40px; }
         
         .score-input {
             width: 100%;
-            height: 100%;
+            height: 40px;
             background: transparent;
             text-align: center;
             font-weight: 900;
@@ -179,7 +183,7 @@
 
         .syncing { background-color: #fef3c7; color: #b45309 !important; }
         .synced-success { background-color: transparent !important; color: #15803d !important; }
-        .total-col { background-color: #ebe6d9; font-weight: 900; min-width: 35px; color: #453f35; }
+        .total-col { background-color: #ebe6d9; font-weight: 900; width: 45px; min-width: 45px; color: #453f35; }
 
         .modal-overlay {
             position: fixed;
@@ -338,17 +342,23 @@
 
         <div id="view-input" class="view hidden">
             <div class="max-w-5xl mx-auto">
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 mb-4">
-                    <label class="block text-[11px] font-black text-gray-400 uppercase mb-2 ml-1">Score Entry</label>
-                    <select id="groupSelect" onchange="loadGroupScorecard()" class="w-full p-4 border-2 border-gray-100 rounded-xl bg-gray-50 font-black text-gray-700 outline-none focus:border-green-600 appearance-none">
-                        <option value="">-- Loading Groups --</option>
-                    </select>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 mb-4 flex flex-col md:flex-row md:items-end gap-4">
+                    <div class="flex-1">
+                        <label class="block text-[11px] font-black text-gray-400 uppercase mb-2 ml-1">Score Entry</label>
+                        <select id="groupSelect" onchange="loadGroupScorecard()" class="w-full p-4 border-2 border-gray-100 rounded-xl bg-gray-50 font-black text-gray-700 outline-none focus:border-green-600 appearance-none">
+                            <option value="">-- Loading Groups --</option>
+                        </select>
+                    </div>
+                    <button id="manualSyncBtn" onclick="manualSyncGroup()" class="hidden md:block bg-stone-800 text-white font-black uppercase text-xs tracking-widest px-6 py-5 rounded-xl shadow-lg active:scale-95 transition-all">
+                        Manual Sync Group
+                    </button>
                 </div>
+                
                 <div class="clubhouse-card overflow-x-auto relative">
                     <div id="card-placeholder" class="p-16 text-center text-gray-400 font-medium italic">Select a group to enter scores</div>
                     <div id="card-loading" class="loading-overlay hidden">
                         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700 mb-2"></div>
-                        <span class="text-xs font-black uppercase text-gray-500 italic">Syncing Group Card...</span>
+                        <span id="loading-sync-text" class="text-xs font-black uppercase text-gray-500 italic">Syncing Group Card...</span>
                     </div>
                     <table id="scorecard-table" class="score-table hidden">
                         <thead>
@@ -364,6 +374,12 @@
                         <tbody id="player-rows"></tbody>
                     </table>
                 </div>
+
+                <div id="mobileSyncContainer" class="mt-4 px-2 hidden">
+                    <button onclick="manualSyncGroup()" class="w-full bg-stone-800 text-white font-black uppercase text-xs tracking-widest py-4 rounded-xl shadow-lg active:scale-95 transition-all">
+                        Manual Sync Group
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -371,18 +387,10 @@
             <div class="centered-container px-1">
                 <div class="giant-header mt-1">Local Rules (Crane Field)</div>
                 <div class="space-y-3 mt-4">
-                    <div class="rule-card">
-                        COURSE IS GETTING BETTER BUT IN ROUGH CONDITION. FOLLOW A LIFT, CLEAN AND PLACE FOR ALL HOLES, LACK OF GRASS, ETC.
-                    </div>
-                    <div class="rule-card">
-                        SPRINKLER CONSTRUCTION LINES ARE FREE RELIEF. (WILL MAINLY BE FOUND ON THE BACK 9 (holes 15 & 16).
-                    </div>
-                    <div class="rule-card">
-                        CART PATH AND ROPED AREAS ARE FREE RELIEF.
-                    </div>
-                    <div class="rule-card">
-                        CAT TAILS, BACK YARDS AND THE RANGE ARE O.B.
-                    </div>
+                    <div class="rule-card">COURSE IS GETTING BETTER BUT IN ROUGH CONDITION. FOLLOW A LIFT, CLEAN AND PLACE FOR ALL HOLES, LACK OF GRASS, ETC.</div>
+                    <div class="rule-card">SPRINKLER CONSTRUCTION LINES ARE FREE RELIEF. (WILL MAINLY BE FOUND ON THE BACK 9 (holes 15 & 16).</div>
+                    <div class="rule-card">CART PATH AND ROPED AREAS ARE FREE RELIEF.</div>
+                    <div class="rule-card">CAT TAILS, BACK YARDS AND THE RANGE ARE O.B.</div>
                 </div>
             </div>
         </div>
@@ -599,19 +607,25 @@
             const placeholder = document.getElementById('card-placeholder');
             const loading = document.getElementById('card-loading');
             const tbody = document.getElementById('player-rows');
+            const syncBtn = document.getElementById('manualSyncBtn');
+            const mobileSync = document.getElementById('mobileSyncContainer');
             
             if (!groupVal) {
                 table.classList.add('hidden');
                 placeholder.classList.remove('hidden');
                 loading.classList.add('hidden');
+                syncBtn.classList.add('hidden');
+                mobileSync.classList.add('hidden');
                 return;
             }
 
             loading.classList.remove('hidden');
+            document.getElementById('loading-sync-text').innerText = "Syncing Group Card...";
             placeholder.classList.add('hidden');
             table.classList.add('opacity-40'); 
 
-            const groupTab = groupVal.split(' - ')[0].replace("Group ", "G");
+            const groupNumMatch = groupVal.match(/Group (\d+)/);
+            const groupTab = groupNumMatch ? `G${groupNumMatch[1]}` : "G1";
 
             try {
                 const [namesRes, scoresRes] = await Promise.all([
@@ -645,6 +659,8 @@
 
                 loading.classList.add('hidden');
                 table.classList.remove('hidden', 'opacity-40');
+                syncBtn.classList.remove('hidden');
+                mobileSync.classList.remove('hidden');
                 groupNames.forEach(name => calculateTotals(name));
             } catch (e) { 
                 loading.classList.add('hidden');
@@ -653,12 +669,67 @@
             }
         }
 
+        async function manualSyncGroup() {
+            const groupSelect = document.getElementById('groupSelect');
+            const groupVal = groupSelect.value;
+            if (!groupVal) return;
+
+            const loading = document.getElementById('card-loading');
+            const syncText = document.getElementById('loading-sync-text');
+            const groupNumMatch = groupVal.match(/Group (\d+)/);
+            const groupTab = groupNumMatch ? `G${groupNumMatch[1]}` : "G1";
+
+            loading.classList.remove('hidden');
+            syncText.innerText = "Pushing all scores to live board...";
+
+            // Gather all inputs for all holes
+            const inputs = document.querySelectorAll('.score-input');
+            const playersInTable = Array.from(new Set(Array.from(inputs).map(i => i.getAttribute('data-player'))));
+            
+            try {
+                // We'll iterate through each hole that has changes or just push everything hole-by-hole
+                // For a manual sync "safety net", pushing hole by hole for the group is most reliable
+                for (let h = 1; h <= 18; h++) {
+                    const holeScores = {};
+                    let hasValue = false;
+                    playersInTable.forEach(p => {
+                        const input = document.querySelector(`.score-input[data-player="${p}"][data-hole="${h}"]`);
+                        if (input && input.value) {
+                            holeScores[p] = input.value;
+                            hasValue = true;
+                        }
+                    });
+                    
+                    if (hasValue) {
+                        const payload = { groupTab, holeNum: h.toString(), scores: holeScores };
+                        await fetch(DEPLOY_URL, { method: 'POST', body: JSON.stringify(payload), mode: 'no-cors' });
+                    }
+                }
+                
+                // Show success feedback
+                syncText.innerText = "Group Scores Synced!";
+                setTimeout(() => {
+                    loading.classList.add('hidden');
+                    // Mark all as synced visually
+                    inputs.forEach(i => {
+                        if (i.value) i.classList.add('synced-success');
+                    });
+                }, 1500);
+            } catch (e) {
+                syncText.innerText = "Manual Sync Failed. Check connection.";
+                setTimeout(() => loading.classList.add('hidden'), 3000);
+            }
+        }
+
         async function autoSaveScore(input) {
             const player = input.getAttribute('data-player');
             const holeNum = input.getAttribute('data-hole');
             const score = input.value;
             const groupSelect = document.getElementById('groupSelect');
-            const groupTab = groupSelect.value.split(' - ')[0].replace("Group ", "G");
+            
+            const groupNumMatch = groupSelect.value.match(/Group (\d+)/);
+            const groupTab = groupNumMatch ? `G${groupNumMatch[1]}` : "G1";
+            
             input.classList.add('syncing');
             calculateTotals(player);
             try {
@@ -848,7 +919,7 @@
             const banner = document.getElementById('school-logo-banner');
             banner.innerHTML = SCHOOLS.map(s => `<img src="${s.url}" onclick="setTheme('${s.id}')" class="school-logo-btn shadow-sm" onerror="${imgError}">`).join('');
             setTheme(currentTheme);
-            setView('scores'); // Default landing page
+            setView('scores'); 
             fetchPlayerScores(); 
             initGroupDropdown(); 
         };
