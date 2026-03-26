@@ -212,22 +212,56 @@
             margin-bottom: 4px;
         }
 
+        /* Large Scorecard Modal Styles */
         .roster-card {
             background: white;
             border-radius: 12px;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
             border: 1px solid #e5e7eb;
             overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
         }
         .roster-player-header {
             background: #f9fafb;
-            padding: 10px 12px;
+            padding: 12px 16px;
             border-bottom: 1px solid #e5e7eb;
             font-weight: 900;
             text-transform: uppercase;
             display: flex;
             justify-content: space-between;
             align-items: center;
+        }
+
+        .modal-score-table {
+            border-collapse: collapse;
+            width: 100%;
+            table-layout: fixed;
+        }
+        .modal-score-table th, .modal-score-table td {
+            border: 1px solid #e5e7eb;
+            text-align: center;
+            padding: 8px 2px;
+        }
+        .modal-score-table th {
+            background-color: #f3f4f6;
+            font-size: 10px;
+            font-weight: 900;
+            color: #6b7280;
+            text-transform: uppercase;
+        }
+        .modal-score-table td {
+            font-size: 1.25rem;
+            font-weight: 900;
+            color: #1f2937;
+        }
+        .modal-score-table .total-label {
+            background-color: #374151;
+            color: white;
+            font-size: 11px;
+        }
+        .modal-score-table .total-val {
+            background-color: #111827;
+            color: white;
         }
         
         .loading-overlay {
@@ -269,7 +303,7 @@
     </div>
 
     <div id="scorecard-modal" class="modal-overlay hidden" onclick="closeScorecardModal(event)">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full h-[85vh] flex flex-col overflow-hidden animate-fadeInUp" onclick="event.stopPropagation()">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full h-[90vh] flex flex-col overflow-hidden animate-fadeInUp" onclick="event.stopPropagation()">
             <div class="bg-stone-800 text-white p-4 flex justify-between items-center shrink-0">
                 <div class="flex items-center space-x-3">
                     <div id="modal-logo-container" class="bg-white p-1 rounded"></div>
@@ -443,7 +477,7 @@
             { id: "WEST FIELD", name: "WEST FIELD", url: "https://assets.hometownticketing.com/clients/westfield/logos/school_logo_ebc133bd.png", color: "#c2410c" }, 
             { id: "FREMONT", name: "FREMONT", url: "https://assets.hometownticketing.com/clients/fremontathletics/logos/school_logo_c1182661.png", color: "#2563eb" }, 
             { id: "NORTHRIDGE", name: "NORTHRIDGE", url: "https://sportshub2-uploads.vnn-prod.zone/files/sites/429/2020/09/29204806/KnightVectorGraphic.png", color: "#991b1b" }, 
-            { id: "CLEARFIELD", name: "CLEARFIELD", url: "https://cmsv2-assets.apptegy.net/uploads/22258/file/3291122/77646c73-243c-4814-b16b-1a9a686cfc78.png", color: "#15803d" }, 
+            { id: "CLEARFIELD", name: "CLEARFIELD", url: "https://cmsv2-assets.apptegy.tegy.net/uploads/22258/file/3291122/77646c73-243c-4814-b16b-1a9a686cfc78.png", color: "#15803d" }, 
             { id: "ROY", name: "ROY", url: "https://cmsv2-assets.apptegy.net/uploads/25031/file/5081095/46ab505e-f612-4145-9e63-ec68e8782242.jpeg", color: "#eab308" } 
         ];
 
@@ -478,32 +512,6 @@
             if(e.target.id === 'scorecard-modal') document.getElementById('scorecard-modal').classList.add('hidden');
         }
 
-        async function jumpToPlayerGroupEntry(playerName) {
-            const overlay = document.getElementById('loading-global');
-            overlay.classList.remove('hidden');
-            document.getElementById('scorecard-modal').classList.add('hidden');
-            
-            if (!warningShownThisSession) {
-                document.getElementById('warning-modal').classList.remove('hidden');
-            }
-            
-            setView('input');
-            const pKey = playerName.trim().toUpperCase();
-            const select = document.getElementById('groupSelect');
-
-            if (select.options.length <= 1) await initGroupDropdown();
-
-            const groupName = groupMap[pKey];
-            if (groupName) {
-                const targetVal = Array.from(select.options).find(opt => opt.value.startsWith(groupName))?.value;
-                if (targetVal) {
-                    select.value = targetVal;
-                    await loadGroupScorecard();
-                }
-            }
-            overlay.classList.add('hidden');
-        }
-
         async function openTeamView(targetName) {
             const modal = document.getElementById('scorecard-modal');
             const title = document.getElementById('modal-title');
@@ -534,26 +542,55 @@
                 const thruVal = String(p[24] || "0").trim();
                 const isFinished = thruVal === '18' || thruVal.toUpperCase() === 'F';
                 
-                return `<div class="roster-card" style="border-top: 4px solid ${match ? match.color : '#333'}">
+                // Front 9 (OUT)
+                let frontHoles = '';
+                for(let h=1; h<=9; h++) frontHoles += `<th>${h}</th>`;
+                let frontScores = '';
+                for(let h=1; h<=9; h++) frontScores += `<td>${p[h+2] || '-'}</td>`;
+
+                // Back 9 (IN)
+                let backHoles = '';
+                for(let h=10; h<=18; h++) backHoles += `<th>${h}</th>`;
+                let backScores = '';
+                for(let h=10; h<=18; h++) backScores += `<td>${p[h+3] || '-'}</td>`;
+
+                const totalOut = p[12] || '-'; // Col M
+                const totalIn = p[22] || '-';  // Col W
+                const totalFin = p[23] || '-'; // Col X
+
+                return `<div class="roster-card" style="border-top: 6px solid ${match ? match.color : '#333'}">
                     <div class="roster-player-header">
-                        <span class="flex items-center">${getLogoHtml(name)} ${name}</span>
+                        <span class="flex items-center text-lg">${getLogoHtml(name, '24px')} ${name}</span>
                         <div class="text-right">
-                            <div class="text-xl font-black text-green-700 leading-none">${ isFinished ? p[23] : (p[25] || '-') }</div>
-                            <div class="text-[9px] opacity-50 font-bold uppercase">Thru ${thruVal}</div>
+                            <div class="text-3xl font-black text-green-700 leading-none">${ isFinished ? p[23] : (p[25] || '-') }</div>
+                            <div class="text-[10px] opacity-60 font-black uppercase tracking-tighter">Thru ${thruVal}</div>
                         </div>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table class="score-table">
+                    
+                    <div class="p-2 space-y-3">
+                        <!-- Front Nine Row -->
+                        <table class="modal-score-table">
                             <tr>
-                                <th class="hole-header">Hole</th>
-                                ${[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18].map(h => `<th class="hole-header">${h}</th>`).join('')}
-                                <th class="hole-header total-col">TOT</th>
+                                ${frontHoles}
+                                <th class="total-label">OUT</th>
                             </tr>
                             <tr>
-                                <td class="bg-stone-50 font-bold">Score</td>
-                                ${[1,2,3,4,5,6,7,8,9].map(h => `<td>${p[h+2] || ''}</td>`).join('')}
-                                ${[10,11,12,13,14,15,16,17,18].map(h => `<td>${p[h+3] || ''}</td>`).join('')}
-                                <td class="total-col !bg-stone-800 !text-white">${p[23] || '-'}</td>
+                                ${frontScores}
+                                <td class="total-val">${totalOut}</td>
+                            </tr>
+                        </table>
+
+                        <!-- Back Nine Row -->
+                        <table class="modal-score-table">
+                            <tr>
+                                ${backHoles}
+                                <th class="total-label">IN</th>
+                                <th class="total-label">TOT</th>
+                            </tr>
+                            <tr>
+                                ${backScores}
+                                <td class="total-val">${totalIn}</td>
+                                <td class="total-val !bg-green-700">${totalFin}</td>
                             </tr>
                         </table>
                     </div>
@@ -682,13 +719,10 @@
             loading.classList.remove('hidden');
             syncText.innerText = "Pushing all scores to live board...";
 
-            // Gather all inputs for all holes
             const inputs = document.querySelectorAll('.score-input');
             const playersInTable = Array.from(new Set(Array.from(inputs).map(i => i.getAttribute('data-player'))));
             
             try {
-                // We'll iterate through each hole that has changes or just push everything hole-by-hole
-                // For a manual sync "safety net", pushing hole by hole for the group is most reliable
                 for (let h = 1; h <= 18; h++) {
                     const holeScores = {};
                     let hasValue = false;
@@ -706,11 +740,9 @@
                     }
                 }
                 
-                // Show success feedback
                 syncText.innerText = "Group Scores Synced!";
                 setTimeout(() => {
                     loading.classList.add('hidden');
-                    // Mark all as synced visually
                     inputs.forEach(i => {
                         if (i.value) i.classList.add('synced-success');
                     });
@@ -867,7 +899,9 @@
         function renderPlayerScores() {
             const list = document.getElementById('scores-list');
             if (!cachedAllScores || cachedAllScores.length === 0) return;
-            let playerRows = cachedAllScores.filter(p => {
+            
+            // Extract and clean player data
+            let allPlayers = cachedAllScores.filter(p => {
                 const name = String(p[2] || "").toUpperCase();
                 return name && name !== "PLAYER NAME" && name !== "PAR" && SCHOOLS.some(s => name.includes(s.name));
             }).map(p => ({
@@ -877,25 +911,51 @@
                 total: p[23],
                 thru: String(p[24] || "-").trim().toUpperCase()
             }));
-            playerRows.sort((a, b) => a.toPar - b.toPar);
+
+            // Separate players into "Active" (played at least 1 hole) and "Inactive"
+            let activePlayers = allPlayers.filter(p => {
+                const thruVal = parseInt(p.thru) || 0;
+                return thruVal > 0 || p.thru === 'F';
+            });
+            
+            let inactivePlayers = allPlayers.filter(p => {
+                const thruVal = parseInt(p.thru) || 0;
+                return thruVal === 0 && p.thru !== 'F';
+            });
+
+            // Sort both groups by score
+            activePlayers.sort((a, b) => a.toPar - b.toPar);
+            inactivePlayers.sort((a, b) => a.toPar - b.toPar);
+
             const rankMap = new Map();
             let currentRank = 1;
-            for(let i=0; i<playerRows.length; i++) {
-                if(i > 0 && playerRows[i].toPar > playerRows[i-1].toPar) currentRank = i + 1;
-                const isTied = (i > 0 && playerRows[i].toPar === playerRows[i - 1].toPar) || (i < playerRows.length - 1 && playerRows[i].toPar === playerRows[i + 1].toPar);
-                rankMap.set(playerRows[i].name, isTied ? `T${currentRank}` : currentRank);
+            
+            // Assign ranks only to active players
+            for(let i=0; i<activePlayers.length; i++) {
+                if(i > 0 && activePlayers[i].toPar > activePlayers[i-1].toPar) currentRank = i + 1;
+                const isTied = (i > 0 && activePlayers[i].toPar === activePlayers[i - 1].toPar) || (i < activePlayers.length - 1 && activePlayers[i].toPar === activePlayers[i + 1].toPar);
+                rankMap.set(activePlayers[i].name, isTied ? `T${currentRank}` : currentRank);
             }
-            list.innerHTML = `<div class="text-[10px] font-black uppercase text-gray-400 mb-2 px-1 grid grid-cols-[1fr_55px_45px]"><span>Player</span><span class="text-center">Score</span><span class="text-right">Thru</span></div>` + playerRows.map((p, i) => {
+            
+            // Inactive players get "-"
+            inactivePlayers.forEach(p => rankMap.set(p.name, '-'));
+
+            const combinedList = [...activePlayers, ...inactivePlayers];
+
+            list.innerHTML = `<div class="text-[10px] font-black uppercase text-gray-400 mb-2 px-1 grid grid-cols-[1fr_55px_45px]"><span>Player</span><span class="text-center">Score</span><span class="text-right">Thru</span></div>` + 
+                combinedList.map((p, i) => {
                 const match = SCHOOLS.find(s => p.name.toUpperCase().includes(s.name));
                 const nameEscaped = p.name.replace(/'/g, "\\'");
                 const rank = rankMap.get(p.name);
                 const displayScore = (p.thru === '18' || p.thru === 'F') ? p.total : p.toPar;
-                return `<div class="all-scores-item row-animate" style="border-left: 4px solid ${match ? match.color : '#eee'}; animation-delay: ${i*0.02}s">
+                const isInactive = rank === '-';
+                
+                return `<div class="all-scores-item row-animate ${isInactive ? 'opacity-60' : ''}" style="border-left: 4px solid ${match ? match.color : '#eee'}; animation-delay: ${i*0.02}s">
                         <span class="font-bold uppercase flex items-center overflow-hidden cursor-pointer" onclick="openScorecard('${nameEscaped}')">
-                            <span class="text-[10px] font-black text-gray-400 w-6 shrink-0">#${rank}</span>
+                            <span class="text-[10px] font-black text-gray-400 w-6 shrink-0">${isInactive ? '-' : '#' + rank}</span>
                             ${getLogoHtml(p.name)} <span class="truncate text-[0.85rem] hover:underline">${p.name}</span>
                         </span>
-                        <span class="text-center text-lg font-black text-green-800">${displayScore}</span>
+                        <span class="text-center text-lg font-black text-green-800">${p.thru === '-' || p.thru === '0' ? '-' : displayScore}</span>
                         <span class="text-right text-xs font-bold text-gray-400">${p.thru}</span>
                     </div>`;
             }).join('');
