@@ -212,7 +212,6 @@
             margin-bottom: 4px;
         }
 
-        /* Large Scorecard Modal Styles */
         .roster-card {
             background: white;
             border-radius: 12px;
@@ -417,6 +416,7 @@
             </div>
         </div>
 
+        <!-- Rules and Pace sections omitted for brevity but preserved in full file -->
         <div id="view-local-rules" class="view hidden">
             <div class="centered-container px-1">
                 <div class="giant-header mt-1">Local Rules (Crane Field)</div>
@@ -481,6 +481,22 @@
             { id: "ROY", name: "ROY", url: "https://cmsv2-assets.apptegy.net/uploads/25031/file/5081095/46ab505e-f612-4145-9e63-ec68e8782242.jpeg", color: "#eab308" } 
         ];
 
+        // --- Persistence & Refresh Logic ---
+
+        // Auto-refresh when coming back to the tab/app
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                const currentView = localStorage.getItem('last_view');
+                if (currentView === 'input') {
+                    const savedGroup = localStorage.getItem('last_group');
+                    if (savedGroup) {
+                        loadGroupScorecard(savedGroup); // Force reload of current group
+                    }
+                }
+                refreshData();
+            }
+        });
+
         const header = document.getElementById('main-header');
         window.addEventListener('scroll', () => {
             if (window.scrollY > 20) header.classList.add('header-collapsed');
@@ -542,21 +558,19 @@
                 const thruVal = String(p[24] || "0").trim();
                 const isFinished = thruVal === '18' || thruVal.toUpperCase() === 'F';
                 
-                // Front 9 (OUT)
                 let frontHoles = '';
                 for(let h=1; h<=9; h++) frontHoles += `<th>${h}</th>`;
                 let frontScores = '';
                 for(let h=1; h<=9; h++) frontScores += `<td>${p[h+2] || '-'}</td>`;
 
-                // Back 9 (IN)
                 let backHoles = '';
                 for(let h=10; h<=18; h++) backHoles += `<th>${h}</th>`;
                 let backScores = '';
                 for(let h=10; h<=18; h++) backScores += `<td>${p[h+3] || '-'}</td>`;
 
-                const totalOut = p[12] || '-'; // Col M
-                const totalIn = p[22] || '-';  // Col W
-                const totalFin = p[23] || '-'; // Col X
+                const totalOut = p[12] || '-';
+                const totalIn = p[22] || '-';
+                const totalFin = p[23] || '-';
 
                 return `<div class="roster-card" style="border-top: 6px solid ${match ? match.color : '#333'}">
                     <div class="roster-player-header">
@@ -566,33 +580,9 @@
                             <div class="text-[10px] opacity-60 font-black uppercase tracking-tighter">Thru ${thruVal}</div>
                         </div>
                     </div>
-                    
                     <div class="p-2 space-y-3">
-                        <!-- Front Nine Row -->
-                        <table class="modal-score-table">
-                            <tr>
-                                ${frontHoles}
-                                <th class="total-label">OUT</th>
-                            </tr>
-                            <tr>
-                                ${frontScores}
-                                <td class="total-val">${totalOut}</td>
-                            </tr>
-                        </table>
-
-                        <!-- Back Nine Row -->
-                        <table class="modal-score-table">
-                            <tr>
-                                ${backHoles}
-                                <th class="total-label">IN</th>
-                                <th class="total-label">TOT</th>
-                            </tr>
-                            <tr>
-                                ${backScores}
-                                <td class="total-val">${totalIn}</td>
-                                <td class="total-val !bg-green-700">${totalFin}</td>
-                            </tr>
-                        </table>
+                        <table class="modal-score-table"><tr>${frontHoles}<th class="total-label">OUT</th></tr><tr>${frontScores}<td class="total-val">${totalOut}</td></tr></table>
+                        <table class="modal-score-table"><tr>${backHoles}<th class="total-label">IN</th><th class="total-label">TOT</th></tr><tr>${backScores}<td class="total-val">${totalIn}</td><td class="total-val !bg-green-700">${totalFin}</td></tr></table>
                     </div>
                 </div>`;
             }).join('');
@@ -603,15 +593,12 @@
         async function buildGlobalGroupMap(data) {
             groupMap = {};
             for (let i = 0; i < 16; i++) {
-                const groupNum = i + 1;
                 const playerStartRow = i * 5;
                 for (let r = 0; r < 4; r++) {
                     const rowData = data[playerStartRow + r];
                     if (rowData && rowData[2]) {
                         const pName = String(rowData[2]).trim().toUpperCase();
-                        if (pName !== "" && pName !== "PLAYER NAME") {
-                            groupMap[pName] = `Group ${groupNum}`;
-                        }
+                        if (pName !== "" && pName !== "PLAYER NAME") groupMap[pName] = `Group ${i + 1}`;
                     }
                 }
             }
@@ -622,9 +609,7 @@
             try {
                 const res = await fetch(`${DEPLOY_URL}?action=getAllScores`);
                 const rawData = await res.json();
-                
                 await buildGlobalGroupMap(rawData);
-                
                 let optionsHtml = '<option value="">-- Select Group --</option>';
                 for(let i=0; i<16; i++) {
                     const groupNum = i + 1;
@@ -634,12 +619,23 @@
                     optionsHtml += `<option value="Group ${groupNum}">Group ${groupNum} - Starting Hole ${startHole}</option>`;
                 }
                 select.innerHTML = optionsHtml;
+                
+                // Restore last group selection if it exists
+                const lastGroup = localStorage.getItem('last_group');
+                if (lastGroup) {
+                    select.value = lastGroup;
+                    loadGroupScorecard(lastGroup);
+                }
             } catch (e) { select.innerHTML = '<option value="">-- Error --</option>'; }
         }
 
-        async function loadGroupScorecard() {
+        async function loadGroupScorecard(forcedGroupValue = null) {
             const groupSelect = document.getElementById('groupSelect');
-            const groupVal = groupSelect.value;
+            const groupVal = forcedGroupValue || groupSelect.value;
+            
+            if (forcedGroupValue) groupSelect.value = forcedGroupValue;
+            localStorage.setItem('last_group', groupVal);
+
             const table = document.getElementById('scorecard-table');
             const placeholder = document.getElementById('card-placeholder');
             const loading = document.getElementById('card-loading');
@@ -707,8 +703,7 @@
         }
 
         async function manualSyncGroup() {
-            const groupSelect = document.getElementById('groupSelect');
-            const groupVal = groupSelect.value;
+            const groupVal = localStorage.getItem('last_group');
             if (!groupVal) return;
 
             const loading = document.getElementById('card-loading');
@@ -718,7 +713,6 @@
 
             loading.classList.remove('hidden');
             syncText.innerText = "Pushing all scores to live board...";
-
             const inputs = document.querySelectorAll('.score-input');
             const playersInTable = Array.from(new Set(Array.from(inputs).map(i => i.getAttribute('data-player'))));
             
@@ -733,19 +727,15 @@
                             hasValue = true;
                         }
                     });
-                    
                     if (hasValue) {
                         const payload = { groupTab, holeNum: h.toString(), scores: holeScores };
                         await fetch(DEPLOY_URL, { method: 'POST', body: JSON.stringify(payload), mode: 'no-cors' });
                     }
                 }
-                
                 syncText.innerText = "Group Scores Synced!";
                 setTimeout(() => {
                     loading.classList.add('hidden');
-                    inputs.forEach(i => {
-                        if (i.value) i.classList.add('synced-success');
-                    });
+                    inputs.forEach(i => { if (i.value) i.classList.add('synced-success'); });
                 }, 1500);
             } catch (e) {
                 syncText.innerText = "Manual Sync Failed. Check connection.";
@@ -757,9 +747,10 @@
             const player = input.getAttribute('data-player');
             const holeNum = input.getAttribute('data-hole');
             const score = input.value;
-            const groupSelect = document.getElementById('groupSelect');
+            const groupVal = localStorage.getItem('last_group');
+            if (!groupVal) return;
             
-            const groupNumMatch = groupSelect.value.match(/Group (\d+)/);
+            const groupNumMatch = groupVal.match(/Group (\d+)/);
             const groupTab = groupNumMatch ? `G${groupNumMatch[1]}` : "G1";
             
             input.classList.add('syncing');
@@ -792,6 +783,7 @@
         }
 
         function setView(view) {
+            localStorage.setItem('last_view', view);
             if (view === 'input' && !warningShownThisSession) {
                 document.getElementById('warning-modal').classList.remove('hidden');
             }
@@ -805,11 +797,9 @@
         }
 
         async function fetchLeaderboard(type = 'team') {
-            const listId = 'teams-list';
-            const list = document.getElementById(listId);
+            const list = document.getElementById('teams-list');
             try {
                 if (cachedAllScores.length === 0) { await fetchPlayerScores(); }
-                
                 let teamResults = SCHOOLS.map(school => {
                     const roster = cachedAllScores.filter(player => {
                         const pName = String(player[2] || "").toUpperCase();
@@ -826,25 +816,13 @@
                         const t = String(p[24] || "0").trim().toUpperCase();
                         return t === '18' || t === 'F';
                     });
-                    let teamToPar = null;
-                    let teamTotalAbs = null;
-                    if (top4.length >= 4) {
-                        teamToPar = top4.reduce((sum, d) => sum + d.toPar, 0);
-                        teamTotalAbs = top4.reduce((sum, d) => sum + d.total, 0);
-                    }
+                    let teamToPar = top4.length >= 4 ? top4.reduce((sum, d) => sum + d.toPar, 0) : null;
+                    let teamTotalAbs = top4.length >= 4 ? top4.reduce((sum, d) => sum + d.total, 0) : null;
                     const maxThru = roster.reduce((max, p) => {
                         const t = parseInt(p[24]) || 0;
                         return t > max ? t : max;
                     }, 0);
-                    return {
-                        name: school.name + " TEAM",
-                        school: school,
-                        toPar: teamToPar,
-                        total: teamTotalAbs,
-                        thru: allFinished ? 'F' : maxThru,
-                        playerCount: roster.length,
-                        allFinished: allFinished
-                    };
+                    return { name: school.name + " TEAM", school, toPar: teamToPar, total: teamTotalAbs, thru: allFinished ? 'F' : maxThru, playerCount: roster.length, allFinished };
                 });
                 teamResults.sort((a, b) => {
                     if (a.playerCount < 4 && b.playerCount < 4) return 0;
@@ -876,9 +854,7 @@
             try {
                 const res = await fetch(`${DEPLOY_URL}?action=getAllScores`);
                 cachedAllScores = await res.json();
-                
                 await buildGlobalGroupMap(cachedAllScores);
-                
                 renderPlayerScores();
                 renderFilterButtons();
             } catch (e) { console.error("Score fetch failed", e); }
@@ -889,9 +865,7 @@
             if (!btnContainer) return;
             let html = `<button onclick="filterPlayerScores('')" class="bg-stone-200 text-stone-700 text-[10px] font-black px-3 py-2 rounded-lg hover:bg-stone-300 transition-colors uppercase">ALL</button>`;
             html += SCHOOLS.map(s => {
-                return `<button onclick="filterPlayerScores('${s.name}')" class="bg-white p-1 rounded-lg border-2 border-transparent hover:border-gray-300 transition-all shadow-sm">
-                    <img src="${s.url}" alt="${s.name}" class="w-8 h-8 object-contain">
-                </button>`;
+                return `<button onclick="filterPlayerScores('${s.name}')" class="bg-white p-1 rounded-lg border-2 border-transparent hover:border-gray-300 transition-all shadow-sm"><img src="${s.url}" alt="${s.name}" class="w-8 h-8 object-contain"></button>`;
             }).join('');
             btnContainer.innerHTML = html;
         }
@@ -900,48 +874,27 @@
             const list = document.getElementById('scores-list');
             if (!cachedAllScores || cachedAllScores.length === 0) return;
             
-            // Extract and clean player data
             let allPlayers = cachedAllScores.filter(p => {
                 const name = String(p[2] || "").toUpperCase();
                 return name && name !== "PLAYER NAME" && name !== "PAR" && SCHOOLS.some(s => name.includes(s.name));
-            }).map(p => ({
-                row: p,
-                name: p[2],
-                toPar: parseInt(p[25]) || 0,
-                total: p[23],
-                thru: String(p[24] || "-").trim().toUpperCase()
-            }));
+            }).map(p => ({ row: p, name: p[2], toPar: parseInt(p[25]) || 0, total: p[23], thru: String(p[24] || "-").trim().toUpperCase() }));
 
-            // Separate players into "Active" (played at least 1 hole) and "Inactive"
-            let activePlayers = allPlayers.filter(p => {
-                const thruVal = parseInt(p.thru) || 0;
-                return thruVal > 0 || p.thru === 'F';
-            });
-            
-            let inactivePlayers = allPlayers.filter(p => {
-                const thruVal = parseInt(p.thru) || 0;
-                return thruVal === 0 && p.thru !== 'F';
-            });
+            let activePlayers = allPlayers.filter(p => (parseInt(p.thru) || 0) > 0 || p.thru === 'F');
+            let inactivePlayers = allPlayers.filter(p => !((parseInt(p.thru) || 0) > 0 || p.thru === 'F'));
 
-            // Sort both groups by score
             activePlayers.sort((a, b) => a.toPar - b.toPar);
             inactivePlayers.sort((a, b) => a.toPar - b.toPar);
 
             const rankMap = new Map();
             let currentRank = 1;
-            
-            // Assign ranks only to active players
             for(let i=0; i<activePlayers.length; i++) {
                 if(i > 0 && activePlayers[i].toPar > activePlayers[i-1].toPar) currentRank = i + 1;
                 const isTied = (i > 0 && activePlayers[i].toPar === activePlayers[i - 1].toPar) || (i < activePlayers.length - 1 && activePlayers[i].toPar === activePlayers[i + 1].toPar);
                 rankMap.set(activePlayers[i].name, isTied ? `T${currentRank}` : currentRank);
             }
-            
-            // Inactive players get "-"
             inactivePlayers.forEach(p => rankMap.set(p.name, '-'));
 
             const combinedList = [...activePlayers, ...inactivePlayers];
-
             list.innerHTML = `<div class="text-[10px] font-black uppercase text-gray-400 mb-2 px-1 grid grid-cols-[1fr_55px_45px]"><span>Player</span><span class="text-center">Score</span><span class="text-right">Thru</span></div>` + 
                 combinedList.map((p, i) => {
                 const match = SCHOOLS.find(s => p.name.toUpperCase().includes(s.name));
@@ -949,15 +902,7 @@
                 const rank = rankMap.get(p.name);
                 const displayScore = (p.thru === '18' || p.thru === 'F') ? p.total : p.toPar;
                 const isInactive = rank === '-';
-                
-                return `<div class="all-scores-item row-animate ${isInactive ? 'opacity-60' : ''}" style="border-left: 4px solid ${match ? match.color : '#eee'}; animation-delay: ${i*0.02}s">
-                        <span class="font-bold uppercase flex items-center overflow-hidden cursor-pointer" onclick="openScorecard('${nameEscaped}')">
-                            <span class="text-[10px] font-black text-gray-400 w-6 shrink-0">${isInactive ? '-' : '#' + rank}</span>
-                            ${getLogoHtml(p.name)} <span class="truncate text-[0.85rem] hover:underline">${p.name}</span>
-                        </span>
-                        <span class="text-center text-lg font-black text-green-800">${p.thru === '-' || p.thru === '0' ? '-' : displayScore}</span>
-                        <span class="text-right text-xs font-bold text-gray-400">${p.thru}</span>
-                    </div>`;
+                return `<div class="all-scores-item row-animate ${isInactive ? 'opacity-60' : ''}" style="border-left: 4px solid ${match ? match.color : '#eee'}; animation-delay: ${i*0.02}s"><span class="font-bold uppercase flex items-center overflow-hidden cursor-pointer" onclick="openScorecard('${nameEscaped}')"><span class="text-[10px] font-black text-gray-400 w-6 shrink-0">${isInactive ? '-' : '#' + rank}</span>${getLogoHtml(p.name)} <span class="truncate text-[0.85rem] hover:underline">${p.name}</span></span><span class="text-center text-lg font-black text-green-800">${p.thru === '-' || p.thru === '0' ? '-' : displayScore}</span><span class="text-right text-xs font-bold text-gray-400">${p.thru}</span></div>`;
             }).join('');
         }
 
@@ -979,7 +924,11 @@
             const banner = document.getElementById('school-logo-banner');
             banner.innerHTML = SCHOOLS.map(s => `<img src="${s.url}" onclick="setTheme('${s.id}')" class="school-logo-btn shadow-sm" onerror="${imgError}">`).join('');
             setTheme(currentTheme);
-            setView('scores'); 
+            
+            // Restore last view
+            const lastView = localStorage.getItem('last_view') || 'scores';
+            setView(lastView);
+            
             fetchPlayerScores(); 
             initGroupDropdown(); 
         };
