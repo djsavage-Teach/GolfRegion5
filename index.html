@@ -382,9 +382,6 @@
                             <option value="">-- Loading Groups --</option>
                         </select>
                     </div>
-                    <button id="manualSyncBtn" onclick="manualSyncGroup()" class="hidden md:block bg-stone-800 text-white font-black uppercase text-xs tracking-widest px-6 py-5 rounded-xl shadow-lg active:scale-95 transition-all">
-                        Manual Sync Group
-                    </button>
                 </div>
                 
                 <div class="clubhouse-card overflow-x-auto relative">
@@ -407,24 +404,14 @@
                         <tbody id="player-rows"></tbody>
                     </table>
                 </div>
-
-                <div id="mobileSyncContainer" class="mt-4 px-2 hidden">
-                    <button onclick="manualSyncGroup()" class="w-full bg-stone-800 text-white font-black uppercase text-xs tracking-widest py-4 rounded-xl shadow-lg active:scale-95 transition-all">
-                        Manual Sync Group
-                    </button>
-                </div>
             </div>
         </div>
 
-        <!-- Rules and Pace sections omitted for brevity but preserved in full file -->
         <div id="view-local-rules" class="view hidden">
             <div class="centered-container px-1">
-                <div class="giant-header mt-1">Local Rules (Crane Field)</div>
-                <div class="space-y-3 mt-4">
-                    <div class="rule-card">COURSE IS GETTING BETTER BUT IN ROUGH CONDITION. FOLLOW A LIFT, CLEAN AND PLACE FOR ALL HOLES, LACK OF GRASS, ETC.</div>
-                    <div class="rule-card">SPRINKLER CONSTRUCTION LINES ARE FREE RELIEF. (WILL MAINLY BE FOUND ON THE BACK 9 (holes 15 & 16).</div>
-                    <div class="rule-card">CART PATH AND ROPED AREAS ARE FREE RELIEF.</div>
-                    <div class="rule-card">CAT TAILS, BACK YARDS AND THE RANGE ARE O.B.</div>
+                <div class="giant-header mt-1">Local Rules</div>
+                <div id="local-rules-container" class="space-y-3 mt-4">
+                    <div class="p-10 text-center opacity-50 italic">loading local rules...</div>
                 </div>
             </div>
         </div>
@@ -465,7 +452,7 @@
     </main>
 
     <script>
-        const DEPLOY_URL = "https://script.google.com/macros/s/AKfycbwcyCtoHDB_en3lyt6FGo7oehDqH4We7YTQmAkJQtS45A_wfEaZNIVZM6VwxKdvCZjs3g/exec";
+        const DEPLOY_URL = "https://script.google.com/macros/s/AKfycbxm67ZCXgj-nqgV6VRu6DHpGAKmzufsDIprrkevws82A0wTRiENSY8TZRPV8H67iRorbA/exec";
         let currentTheme = localStorage.getItem('golf_theme') || "REGION";
         let warningShownThisSession = false;
         let cachedAllScores = [];
@@ -477,20 +464,17 @@
             { id: "WEST FIELD", name: "WEST FIELD", url: "https://assets.hometownticketing.com/clients/westfield/logos/school_logo_ebc133bd.png", color: "#c2410c" }, 
             { id: "FREMONT", name: "FREMONT", url: "https://assets.hometownticketing.com/clients/fremontathletics/logos/school_logo_c1182661.png", color: "#2563eb" }, 
             { id: "NORTHRIDGE", name: "NORTHRIDGE", url: "https://sportshub2-uploads.vnn-prod.zone/files/sites/429/2020/09/29204806/KnightVectorGraphic.png", color: "#991b1b" }, 
-            { id: "CLEARFIELD", name: "CLEARFIELD", url: "https://cmsv2-assets.apptegy.tegy.net/uploads/22258/file/3291122/77646c73-243c-4814-b16b-1a9a686cfc78.png", color: "#15803d" }, 
+            { id: "CLEARFIELD", name: "CLEARFIELD", url: "https://sportshub2-uploads.vnn-prod.zone/files/sites/1722/2017/07/26012144/12552.png", color: "#15803d" }, 
             { id: "ROY", name: "ROY", url: "https://cmsv2-assets.apptegy.net/uploads/25031/file/5081095/46ab505e-f612-4145-9e63-ec68e8782242.jpeg", color: "#eab308" } 
         ];
 
-        // --- Persistence & Refresh Logic ---
-
-        // Auto-refresh when coming back to the tab/app
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible') {
                 const currentView = localStorage.getItem('last_view');
                 if (currentView === 'input') {
                     const savedGroup = localStorage.getItem('last_group');
                     if (savedGroup) {
-                        loadGroupScorecard(savedGroup); // Force reload of current group
+                        loadGroupScorecard(savedGroup);
                     }
                 }
                 refreshData();
@@ -619,8 +603,6 @@
                     optionsHtml += `<option value="Group ${groupNum}">Group ${groupNum} - Starting Hole ${startHole}</option>`;
                 }
                 select.innerHTML = optionsHtml;
-                
-                // Restore last group selection if it exists
                 const lastGroup = localStorage.getItem('last_group');
                 if (lastGroup) {
                     select.value = lastGroup;
@@ -632,7 +614,6 @@
         async function loadGroupScorecard(forcedGroupValue = null) {
             const groupSelect = document.getElementById('groupSelect');
             const groupVal = forcedGroupValue || groupSelect.value;
-            
             if (forcedGroupValue) groupSelect.value = forcedGroupValue;
             localStorage.setItem('last_group', groupVal);
 
@@ -640,15 +621,11 @@
             const placeholder = document.getElementById('card-placeholder');
             const loading = document.getElementById('card-loading');
             const tbody = document.getElementById('player-rows');
-            const syncBtn = document.getElementById('manualSyncBtn');
-            const mobileSync = document.getElementById('mobileSyncContainer');
             
             if (!groupVal) {
                 table.classList.add('hidden');
                 placeholder.classList.remove('hidden');
                 loading.classList.add('hidden');
-                syncBtn.classList.add('hidden');
-                mobileSync.classList.add('hidden');
                 return;
             }
 
@@ -692,54 +669,11 @@
 
                 loading.classList.add('hidden');
                 table.classList.remove('hidden', 'opacity-40');
-                syncBtn.classList.remove('hidden');
-                mobileSync.classList.remove('hidden');
                 groupNames.forEach(name => calculateTotals(name));
             } catch (e) { 
                 loading.classList.add('hidden');
                 placeholder.innerHTML = `<div class="text-red-500 font-bold p-16">Sync Error</div>`; 
                 placeholder.classList.remove('hidden');
-            }
-        }
-
-        async function manualSyncGroup() {
-            const groupVal = localStorage.getItem('last_group');
-            if (!groupVal) return;
-
-            const loading = document.getElementById('card-loading');
-            const syncText = document.getElementById('loading-sync-text');
-            const groupNumMatch = groupVal.match(/Group (\d+)/);
-            const groupTab = groupNumMatch ? `G${groupNumMatch[1]}` : "G1";
-
-            loading.classList.remove('hidden');
-            syncText.innerText = "Pushing all scores to live board...";
-            const inputs = document.querySelectorAll('.score-input');
-            const playersInTable = Array.from(new Set(Array.from(inputs).map(i => i.getAttribute('data-player'))));
-            
-            try {
-                for (let h = 1; h <= 18; h++) {
-                    const holeScores = {};
-                    let hasValue = false;
-                    playersInTable.forEach(p => {
-                        const input = document.querySelector(`.score-input[data-player="${p}"][data-hole="${h}"]`);
-                        if (input && input.value) {
-                            holeScores[p] = input.value;
-                            hasValue = true;
-                        }
-                    });
-                    if (hasValue) {
-                        const payload = { groupTab, holeNum: h.toString(), scores: holeScores };
-                        await fetch(DEPLOY_URL, { method: 'POST', body: JSON.stringify(payload), mode: 'no-cors' });
-                    }
-                }
-                syncText.innerText = "Group Scores Synced!";
-                setTimeout(() => {
-                    loading.classList.add('hidden');
-                    inputs.forEach(i => { if (i.value) i.classList.add('synced-success'); });
-                }, 1500);
-            } catch (e) {
-                syncText.innerText = "Manual Sync Failed. Check connection.";
-                setTimeout(() => loading.classList.add('hidden'), 3000);
             }
         }
 
@@ -782,6 +716,22 @@
             if(Math_totEl) Math_totEl.innerText = (outC+inC) > 0 ? (out+inT) : '-';
         }
 
+        async function fetchLocalRules() {
+            const container = document.getElementById('local-rules-container');
+            container.innerHTML = `<div class="p-10 text-center opacity-50 italic">loading local rules...</div>`;
+            try {
+                const res = await fetch(`${DEPLOY_URL}?action=getLocalRules`);
+                const rules = await res.json();
+                if (rules && rules.length > 0) {
+                    container.innerHTML = rules.map(rule => `<div class="rule-card row-animate">${rule}</div>`).join('');
+                } else {
+                    container.innerHTML = `<div class="p-10 text-center opacity-50 italic">No local rules listed in spreadsheet.</div>`;
+                }
+            } catch (e) {
+                container.innerHTML = `<div class="p-10 text-center text-red-500 font-bold">Error syncing rules.</div>`;
+            }
+        }
+
         function setView(view) {
             localStorage.setItem('last_view', view);
             if (view === 'input' && !warningShownThisSession) {
@@ -792,8 +742,10 @@
             document.querySelectorAll('nav button').forEach(el => el.classList.remove('active-tab'));
             const activeBtn = document.getElementById(`tab-${view}`);
             if (activeBtn) activeBtn.classList.add('active-tab');
+            
             if (['teams', 'scores'].includes(view)) refreshData();
             if (view === 'input') initGroupDropdown();
+            if (view === 'local-rules') fetchLocalRules();
         }
 
         async function fetchLeaderboard(type = 'team') {
@@ -873,18 +825,14 @@
         function renderPlayerScores() {
             const list = document.getElementById('scores-list');
             if (!cachedAllScores || cachedAllScores.length === 0) return;
-            
             let allPlayers = cachedAllScores.filter(p => {
                 const name = String(p[2] || "").toUpperCase();
                 return name && name !== "PLAYER NAME" && name !== "PAR" && SCHOOLS.some(s => name.includes(s.name));
             }).map(p => ({ row: p, name: p[2], toPar: parseInt(p[25]) || 0, total: p[23], thru: String(p[24] || "-").trim().toUpperCase() }));
-
             let activePlayers = allPlayers.filter(p => (parseInt(p.thru) || 0) > 0 || p.thru === 'F');
             let inactivePlayers = allPlayers.filter(p => !((parseInt(p.thru) || 0) > 0 || p.thru === 'F'));
-
             activePlayers.sort((a, b) => a.toPar - b.toPar);
             inactivePlayers.sort((a, b) => a.toPar - b.toPar);
-
             const rankMap = new Map();
             let currentRank = 1;
             for(let i=0; i<activePlayers.length; i++) {
@@ -893,7 +841,6 @@
                 rankMap.set(activePlayers[i].name, isTied ? `T${currentRank}` : currentRank);
             }
             inactivePlayers.forEach(p => rankMap.set(p.name, '-'));
-
             const combinedList = [...activePlayers, ...inactivePlayers];
             list.innerHTML = `<div class="text-[10px] font-black uppercase text-gray-400 mb-2 px-1 grid grid-cols-[1fr_55px_45px]"><span>Player</span><span class="text-center">Score</span><span class="text-right">Thru</span></div>` + 
                 combinedList.map((p, i) => {
@@ -918,17 +865,15 @@
             const active = document.querySelector('nav button.active-tab')?.id;
             if (active === 'tab-teams') fetchLeaderboard('team');
             if (active === 'tab-scores') fetchPlayerScores();
+            if (active === 'tab-local-rules') fetchLocalRules();
         }
 
         window.onload = () => { 
             const banner = document.getElementById('school-logo-banner');
             banner.innerHTML = SCHOOLS.map(s => `<img src="${s.url}" onclick="setTheme('${s.id}')" class="school-logo-btn shadow-sm" onerror="${imgError}">`).join('');
             setTheme(currentTheme);
-            
-            // Restore last view
             const lastView = localStorage.getItem('last_view') || 'scores';
             setView(lastView);
-            
             fetchPlayerScores(); 
             initGroupDropdown(); 
         };
