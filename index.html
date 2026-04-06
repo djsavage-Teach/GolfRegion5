@@ -12,6 +12,9 @@
             --primary-color: #15803d;
             --primary-dark: #064e3b;
             --card-cream: #fdfbf7;
+            --under-par-bg: #991b1b;
+            --over-par-bg: #111827;
+            --even-par-bg: #15803d;
         }
 
         body { 
@@ -34,14 +37,25 @@
             pointer-events: none;
         }
 
-        .active-tab { border-bottom: 4px solid var(--primary-color); color: var(--primary-color); }
-        
+        /* Unified Glassmorphic Header & Nav */
         .glass-header {
             background-color: var(--primary-color);
-            background-image: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.4));
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background-image: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.3));
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-pill {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 9999px;
+            position: relative;
+        }
+
+        .active-tab { 
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
         @keyframes fadeInUp {
@@ -56,19 +70,44 @@
 
         .centered-container { max-width: 600px; margin: 0 auto; }
 
+        /* Bento Box Grid Styling */
         .lb-grid {
             display: grid;
-            grid-template-columns: 32px 1fr 48px 42px;
+            grid-template-columns: 40px 1fr 65px 45px;
             align-items: center;
-            gap: 2px;
+            gap: 8px;
+            margin-bottom: 8px;
+            background: white;
+            padding: 12px 16px;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(0,0,0,0.05);
         }
 
-        .rank-cell { text-align: left; font-weight: 900; color: #6b7280; font-size: 0.8rem; }
+        .rank-cell { text-align: left; font-weight: 900; color: #6b7280; font-size: 0.85rem; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
         .name-cell { display: flex; align-items: center; font-weight: 800; text-transform: uppercase; overflow: hidden; min-width: 0; }
-        .name-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.85rem; flex: 1; cursor: pointer; }
+        .name-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem; flex: 1; cursor: pointer; color: #1f2937; }
         .name-text:hover { text-decoration: underline; }
-        .score-cell { text-align: center; font-weight: 900; font-style: italic; font-size: 1.1rem; }
-        .holes-cell { text-align: right; font-weight: 700; color: #9ca3af; font-size: 0.7rem; }
+        
+        /* High Contrast Score Cell - UPDATED COLOR SCHEME */
+        .score-pill {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 1.1rem;
+            border-radius: 0.5rem;
+            padding: 4px 0;
+            width: 100%;
+            font-variant-numeric: tabular-nums;
+            min-width: 50px;
+            color: white; /* All scores have white text for contrast */
+        }
+        .score-under { background-color: var(--under-par-bg); } /* Red */
+        .score-over { background-color: var(--over-par-bg); }  /* Black */
+        .score-even { background-color: var(--even-par-bg); }  /* Green */
+
+        .holes-cell { text-align: right; font-weight: 800; color: #4b5563; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
 
         .giant-header {
             font-size: 1.1rem;
@@ -77,9 +116,9 @@
             text-align: center;
             background-color: var(--primary-color);
             color: white;
-            padding: 10px;
-            border-radius: 10px;
-            margin-bottom: 4px;
+            padding: 12px;
+            border-radius: 1rem;
+            margin-bottom: 12px;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
         }
 
@@ -90,7 +129,7 @@
             flex-wrap: wrap;
             gap: 8px;
             padding: 8px;
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 12px;
             margin-top: 12px;
         }
@@ -107,7 +146,7 @@
             border: 2px solid transparent;
         }
 
-        .inline-logo { width: 18px; height: 18px; min-width: 18px; object-fit: contain; display: inline-block; vertical-align: middle; margin-right: 4px; background: white; padding: 1px; border-radius: 3px; }
+        .inline-logo { width: 22px; height: 22px; min-width: 22px; object-fit: contain; display: inline-block; vertical-align: middle; margin-right: 8px; background: white; padding: 2px; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
 
         .pulse-live {
             width: 8px;
@@ -127,25 +166,26 @@
         .rule-card {
             background: white;
             border-left: 4px solid var(--primary-color);
-            padding: 12px 16px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            margin-bottom: 10px;
-            font-size: 0.9rem;
-            line-height: 1.4;
+            padding: 16px;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-bottom: 12px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            border: 1px solid rgba(0,0,0,0.05);
         }
 
         .clubhouse-card {
             background-color: var(--card-cream);
             border: 2px solid #d1c7b7;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-            border-radius: 4px;
+            border-radius: 1rem;
             position: relative;
             overflow: hidden;
             min-height: 200px;
         }
 
-        .score-table { border-collapse: collapse; width: 100%; font-size: 11px; }
+        .score-table { border-collapse: collapse; width: 100%; font-size: 11px; font-variant-numeric: tabular-nums; }
         .score-table th, .score-table td { border: 1px solid #d1c7b7; padding: 0; text-align: center; }
 
         .sticky-col {
@@ -179,6 +219,7 @@
             color: #374151;
             border: none;
             outline: none;
+            font-variant-numeric: tabular-nums;
         }
 
         .syncing { background-color: #fef3c7; color: #b45309 !important; }
@@ -200,29 +241,30 @@
             padding: 10px;
         }
 
+        /* Bento Player Cards */
         .all-scores-item {
             background-color: white;
-            padding: 12px;
-            border-radius: 12px;
-            border: 1px solid #eee;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            padding: 12px 16px;
+            border-radius: 1rem;
+            border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
             display: grid;
-            grid-template-columns: 1fr 60px 50px;
+            grid-template-columns: 1fr 75px 50px;
             align-items: center;
-            margin-bottom: 4px;
+            margin-bottom: 8px;
         }
 
         .roster-card {
             background: white;
-            border-radius: 12px;
+            border-radius: 1rem;
             margin-bottom: 16px;
             border: 1px solid #e5e7eb;
             overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
         .roster-player-header {
             background: #f9fafb;
-            padding: 12px 16px;
+            padding: 16px;
             border-bottom: 1px solid #e5e7eb;
             font-weight: 900;
             text-transform: uppercase;
@@ -235,6 +277,7 @@
             border-collapse: collapse;
             width: 100%;
             table-layout: fixed;
+            font-variant-numeric: tabular-nums;
         }
         .modal-score-table th, .modal-score-table td {
             border: 1px solid #e5e7eb;
@@ -273,9 +316,12 @@
             justify-content: center;
             z-index: 50;
         }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen text-gray-900 overflow-x-hidden">
+<body class="bg-gray-50 min-h-screen text-gray-900 overflow-x-hidden">
 
     <div id="loading-global" class="modal-overlay hidden">
         <div class="bg-white p-8 rounded-2xl shadow-2xl text-center">
@@ -315,7 +361,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
             </div>
-            <div id="modal-content" class="p-3 overflow-y-auto flex-1 bg-gray-50">
+            <div id="modal-content" class="p-4 overflow-y-auto flex-1 bg-gray-50">
             </div>
             <div class="p-4 bg-white border-t flex justify-center shrink-0">
                 <button onclick="document.getElementById('scorecard-modal').classList.add('hidden')" class="px-8 py-3 bg-stone-800 text-white font-black uppercase text-xs tracking-widest rounded-lg">Close View</button>
@@ -346,39 +392,39 @@
                 </div>
             </div>
         </div>
-        <nav class="bg-white border-b shadow-sm">
-            <div class="flex items-end justify-start sm:justify-center text-gray-500 text-[10px] sm:text-sm font-bold uppercase overflow-x-auto px-2 whitespace-nowrap">
-                <button onclick="setView('scores')" id="tab-scores" class="px-3 sm:px-5 py-3 transition-all active-tab">Individuals</button>
-                <button onclick="setView('teams')" id="tab-teams" class="px-3 sm:px-5 py-3 transition-all">Teams</button>
-                <button onclick="setView('input')" id="tab-input" class="px-3 sm:px-5 py-3 transition-all">Score Entry</button>
-                <button onclick="setView('local-rules')" id="tab-local-rules" class="px-3 sm:px-5 py-3 transition-all">Local Rules</button>
-                <button onclick="setView('rules')" id="tab-rules" class="px-3 sm:px-5 py-3 transition-all">Spectators</button>
-                <button onclick="setView('pace')" id="tab-pace" class="px-3 sm:px-5 py-3 transition-all">Pace</button>
+        <nav class="max-w-5xl mx-auto px-2 pb-3">
+            <div class="flex items-center justify-start sm:justify-center text-white/80 text-[10px] sm:text-sm font-bold uppercase overflow-x-auto whitespace-nowrap gap-1 no-scrollbar">
+                <button onclick="setView('scores')" id="tab-scores" class="nav-pill px-4 py-2 transition-all active-tab">Individuals</button>
+                <button onclick="setView('teams')" id="tab-teams" class="nav-pill px-4 py-2 transition-all">Teams</button>
+                <button onclick="setView('input')" id="tab-input" class="nav-pill px-4 py-2 transition-all">Score Entry</button>
+                <button onclick="setView('local-rules')" id="tab-local-rules" class="nav-pill px-4 py-2 transition-all">Rules</button>
+                <button onclick="setView('rules')" id="tab-rules" class="nav-pill px-4 py-2 transition-all">Spectators</button>
+                <button onclick="setView('pace')" id="tab-pace" class="nav-pill px-4 py-2 transition-all">Pace</button>
             </div>
         </nav>
     </header>
 
-    <main id="main-content" class="max-w-7xl mx-auto p-2 sm:p-4 pb-24">
+    <main id="main-content" class="max-w-7xl mx-auto p-3 sm:p-4 pb-24">
         <div id="view-scores" class="view">
             <div class="centered-container">
-                <div class="mb-3 px-1">
-                    <input id="scores-search" type="text" onkeyup="filterPlayerScores(this.value)" placeholder="Search players or teams..." class="w-full p-3 rounded-xl border border-gray-300 shadow-inner outline-none focus:ring-2 focus:ring-green-500 text-base mb-2">
-                    <div id="team-filter-buttons" class="flex flex-wrap items-center justify-center gap-2 py-1"></div>
+                <div class="mb-4 px-1">
+                    <input id="scores-search" type="text" onkeyup="filterPlayerScores(this.value)" placeholder="Search players or teams..." class="w-full p-4 rounded-2xl border border-gray-200 shadow-sm outline-none focus:ring-2 focus:ring-green-500 text-base mb-3">
+                    <div id="team-filter-buttons" class="flex flex-wrap items-center justify-center gap-3 py-1"></div>
                 </div>
-                <div id="scores-list" class="grid gap-1"></div>
+                <div id="scores-list"></div>
             </div>
         </div>
 
         <div id="view-teams" class="view hidden">
-            <div class="centered-container"><div id="teams-list" class="grid gap-1"></div></div>
+            <div class="centered-container"><div id="teams-list"></div></div>
         </div>
 
         <div id="view-input" class="view hidden">
             <div class="max-w-5xl mx-auto">
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 mb-4 flex flex-col md:flex-row md:items-end gap-4">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-4 flex flex-col md:flex-row md:items-end gap-4">
                     <div class="flex-1">
                         <label class="block text-[11px] font-black text-gray-400 uppercase mb-2 ml-1">Score Entry</label>
-                        <select id="groupSelect" onchange="loadGroupScorecard()" class="w-full p-4 border-2 border-gray-100 rounded-xl bg-gray-50 font-black text-gray-700 outline-none focus:border-green-600 appearance-none">
+                        <select id="groupSelect" onchange="loadGroupScorecard()" class="w-full p-4 border-2 border-gray-100 rounded-2xl bg-gray-50 font-black text-gray-700 outline-none focus:border-green-600 appearance-none">
                             <option value="">-- Loading Groups --</option>
                         </select>
                     </div>
@@ -410,7 +456,7 @@
         <div id="view-local-rules" class="view hidden">
             <div class="centered-container px-1">
                 <div class="giant-header mt-1">Local Rules</div>
-                <div id="local-rules-container" class="space-y-3 mt-4">
+                <div id="local-rules-container" class="mt-2">
                     <div class="p-10 text-center opacity-50 italic">loading local rules...</div>
                 </div>
             </div>
@@ -419,7 +465,7 @@
         <div id="view-rules" class="view hidden">
             <div class="centered-container px-1">
                 <div class="giant-header mt-1">Spectator Rules</div>
-                <div class="space-y-3 mt-4">
+                <div class="mt-2">
                     <div class="rule-card"><strong>Stay at least 30 feet away</strong> from players at all times.</div>
                     <div class="rule-card"><strong>DO NOT</strong> give players advice.</div>
                     <div class="rule-card"><strong>No Private Conversations:</strong> Avoid private discussions with your player as these will be viewed as giving advice during the round.</div>
@@ -438,7 +484,7 @@
         <div id="view-pace" class="view hidden">
             <div class="centered-container px-1">
                 <div class="giant-header mt-1">Pace of Play</div>
-                <div class="space-y-3 mt-4">
+                <div class="mt-2">
                     <div class="rule-card">The easiest way to stay on pace is to <strong>walk quickly between shots and holes</strong>. Visit as you walk.</div>
                     <div class="rule-card"><strong>Play ready golf.</strong> Be ready to hit when it is your turn and remember you don't have to wait to be the furthest from the hole as long as you aren't disrupting another players' shot.</div>
                     <div class="rule-card">You have <strong>3 minutes</strong> to search for lost or OB balls.</div>
@@ -473,9 +519,7 @@
                 const currentView = localStorage.getItem('last_view');
                 if (currentView === 'input') {
                     const savedGroup = localStorage.getItem('last_group');
-                    if (savedGroup) {
-                        loadGroupScorecard(savedGroup);
-                    }
+                    if (savedGroup) loadGroupScorecard(savedGroup);
                 }
                 refreshData();
             }
@@ -496,11 +540,11 @@
 
         const imgError = "this.onerror=null;this.src='https://upload.wikimedia.org/wikipedia/commons/e/e4/Ellipsis_icon.png';";
 
-        function getLogoHtml(text, size = '18px') {
+        function getLogoHtml(text, size = '22px') {
             if (!text) return "";
             const t = text.toUpperCase();
             const match = SCHOOLS.find(s => t.includes(s.name));
-            return match ? `<img src="${match.url}" style="width:${size}; height:${size};" class="inline-block object-contain align-middle mr-2 bg-white p-0.5 rounded shadow-sm" alt="${match.name}" onerror="${imgError}">` : "";
+            return match ? `<img src="${match.url}" style="width:${size}; height:${size};" class="inline-logo" alt="${match.name}" onerror="${imgError}">` : "";
         }
 
         function closeWarning() {
@@ -558,13 +602,13 @@
 
                 return `<div class="roster-card" style="border-top: 6px solid ${match ? match.color : '#333'}">
                     <div class="roster-player-header">
-                        <span class="flex items-center text-lg">${getLogoHtml(name, '24px')} ${name}</span>
+                        <span class="flex items-center text-lg font-black">${getLogoHtml(name, '28px')} ${name}</span>
                         <div class="text-right">
-                            <div class="text-3xl font-black text-green-700 leading-none">${ isFinished ? p[23] : (p[25] || '-') }</div>
+                            <div class="text-3xl font-black text-green-700 leading-none" style="font-variant-numeric: tabular-nums;">${ isFinished ? p[23] : (p[25] || '-') }</div>
                             <div class="text-[10px] opacity-60 font-black uppercase tracking-tighter">Thru ${thruVal}</div>
                         </div>
                     </div>
-                    <div class="p-2 space-y-3">
+                    <div class="p-3 space-y-3">
                         <table class="modal-score-table"><tr>${frontHoles}<th class="total-label">OUT</th></tr><tr>${frontScores}<td class="total-val">${totalOut}</td></tr></table>
                         <table class="modal-score-table"><tr>${backHoles}<th class="total-label">IN</th><th class="total-label">TOT</th></tr><tr>${backScores}<td class="total-val">${totalIn}</td><td class="total-val !bg-green-700">${totalFin}</td></tr></table>
                     </div>
@@ -683,10 +727,8 @@
             const score = input.value;
             const groupVal = localStorage.getItem('last_group');
             if (!groupVal) return;
-            
             const groupNumMatch = groupVal.match(/Group (\d+)/);
             const groupTab = groupNumMatch ? `G${groupNumMatch[1]}` : "G1";
-            
             input.classList.add('syncing');
             calculateTotals(player);
             try {
@@ -739,29 +781,35 @@
             }
             document.querySelectorAll('.view').forEach(el => el.classList.add('hidden'));
             document.getElementById(`view-${view}`).classList.remove('hidden');
-            document.querySelectorAll('nav button').forEach(el => el.classList.remove('active-tab'));
+            document.querySelectorAll('.nav-pill').forEach(el => el.classList.remove('active-tab'));
             const activeBtn = document.getElementById(`tab-${view}`);
             if (activeBtn) activeBtn.classList.add('active-tab');
-            
             if (['teams', 'scores'].includes(view)) refreshData();
             if (view === 'input') initGroupDropdown();
             if (view === 'local-rules') fetchLocalRules();
         }
 
+        /* UPDATED COLOR LOGIC */
+        function getScoreClass(toPar) {
+            if (toPar === 0) return 'score-even';     /* Green for Even */
+            return toPar < 0 ? 'score-under' : 'score-over'; /* Red for Under, Black for Over */
+        }
+
+        function formatToPar(val) {
+            if (val === 0) return "E";
+            return val > 0 ? `+${val}` : `${val}`;
+        }
+
         async function fetchLeaderboard(type = 'team') {
             const list = document.getElementById('teams-list');
             try {
-                if (cachedAllScores.length === 0) { await fetchPlayerScores(); }
+                if (cachedAllScores.length === 0) await fetchPlayerScores();
                 let teamResults = SCHOOLS.map(school => {
                     const roster = cachedAllScores.filter(player => {
                         const pName = String(player[2] || "").toUpperCase();
                         return pName.includes(school.name) && !pName.includes("TEAM") && pName !== "PLAYER NAME";
                     });
-                    const playerData = roster.map(p => ({
-                        toPar: parseInt(p[25]),
-                        total: parseInt(p[23]),
-                        thru: String(p[24] || "0").trim().toUpperCase()
-                    })).filter(d => !isNaN(d.toPar) && !isNaN(d.total));
+                    const playerData = roster.map(p => ({ toPar: parseInt(p[25]), total: parseInt(p[23]), thru: String(p[24] || "0").trim().toUpperCase() })).filter(d => !isNaN(d.toPar) && !isNaN(d.total));
                     playerData.sort((a, b) => a.toPar - b.toPar);
                     const top4 = playerData.slice(0, 4);
                     const allFinished = roster.length > 0 && roster.every(p => {
@@ -790,12 +838,14 @@
                             if (!(i > 0 && team.toPar === teamResults[i-1].toPar)) currentRank = i + 1;
                             rank = currentRank;
                         }
-                        const displayScore = team.playerCount < 4 ? '-' : (team.allFinished ? team.total : (team.toPar ?? '-'));
+                        const isFinished = team.allFinished;
+                        const displayScore = team.playerCount < 4 ? '-' : (isFinished ? team.total : formatToPar(team.toPar));
+                        const scoreClass = team.playerCount < 4 ? '' : getScoreClass(team.toPar);
                         const nameEscaped = team.name.replace(/'/g, "\\'");
-                        return `<div class="bg-white py-2.5 px-3 rounded-xl shadow-sm border border-gray-200 lb-grid row-animate" style="border-left: 4px solid ${team.school.color}; animation-delay: ${i * 0.05}s">
-                            <div class="rank-cell">${rank}</div>
+                        return `<div class="lb-grid row-animate" style="border-left: 6px solid ${team.school.color}; animation-delay: ${i * 0.05}s">
+                            <div class="rank-cell">#${rank}</div>
                             <div class="name-cell">${getLogoHtml(team.name)} <span class="name-text" onclick="openScorecard('${nameEscaped}')">${team.name}</span></div>
-                            <div class="score-cell">${displayScore}</div>
+                            <div class="flex items-center"><div class="score-pill ${scoreClass}">${displayScore}</div></div>
                             <div class="holes-cell">${team.thru || '-'}</div>
                         </div>`;
                     }).join('');
@@ -815,10 +865,8 @@
         function renderFilterButtons() {
             const btnContainer = document.getElementById('team-filter-buttons');
             if (!btnContainer) return;
-            let html = `<button onclick="filterPlayerScores('')" class="bg-stone-200 text-stone-700 text-[10px] font-black px-3 py-2 rounded-lg hover:bg-stone-300 transition-colors uppercase">ALL</button>`;
-            html += SCHOOLS.map(s => {
-                return `<button onclick="filterPlayerScores('${s.name}')" class="bg-white p-1 rounded-lg border-2 border-transparent hover:border-gray-300 transition-all shadow-sm"><img src="${s.url}" alt="${s.name}" class="w-8 h-8 object-contain"></button>`;
-            }).join('');
+            let html = `<button onclick="filterPlayerScores('')" class="bg-white text-stone-700 text-[10px] font-black px-4 py-3 rounded-2xl shadow-sm border border-gray-100 hover:bg-stone-50 transition-colors uppercase">ALL</button>`;
+            html += SCHOOLS.map(s => `<button onclick="filterPlayerScores('${s.name}')" class="bg-white p-1 rounded-2xl border border-gray-100 hover:border-gray-300 transition-all shadow-sm"><img src="${s.url}" alt="${s.name}" class="w-9 h-9 object-contain"></button>`).join('');
             btnContainer.innerHTML = html;
         }
 
@@ -842,14 +890,16 @@
             }
             inactivePlayers.forEach(p => rankMap.set(p.name, '-'));
             const combinedList = [...activePlayers, ...inactivePlayers];
-            list.innerHTML = `<div class="text-[10px] font-black uppercase text-gray-400 mb-2 px-1 grid grid-cols-[1fr_55px_45px]"><span>Player</span><span class="text-center">Score</span><span class="text-right">Thru</span></div>` + 
+            list.innerHTML = `<div class="text-[10px] font-black uppercase text-gray-400 mb-3 px-2 grid grid-cols-[1fr_75px_50px]"><span>Player</span><span class="text-center">Score</span><span class="text-right">Thru</span></div>` + 
                 combinedList.map((p, i) => {
                 const match = SCHOOLS.find(s => p.name.toUpperCase().includes(s.name));
                 const nameEscaped = p.name.replace(/'/g, "\\'");
                 const rank = rankMap.get(p.name);
-                const displayScore = (p.thru === '18' || p.thru === 'F') ? p.total : p.toPar;
+                const isFinished = p.thru === '18' || p.thru === 'F';
+                const displayScore = isFinished ? p.total : formatToPar(p.toPar);
+                const scoreClass = getScoreClass(p.toPar);
                 const isInactive = rank === '-';
-                return `<div class="all-scores-item row-animate ${isInactive ? 'opacity-60' : ''}" style="border-left: 4px solid ${match ? match.color : '#eee'}; animation-delay: ${i*0.02}s"><span class="font-bold uppercase flex items-center overflow-hidden cursor-pointer" onclick="openScorecard('${nameEscaped}')"><span class="text-[10px] font-black text-gray-400 w-6 shrink-0">${isInactive ? '-' : '#' + rank}</span>${getLogoHtml(p.name)} <span class="truncate text-[0.85rem] hover:underline">${p.name}</span></span><span class="text-center text-lg font-black text-green-800">${p.thru === '-' || p.thru === '0' ? '-' : displayScore}</span><span class="text-right text-xs font-bold text-gray-400">${p.thru}</span></div>`;
+                return `<div class="all-scores-item row-animate ${isInactive ? 'opacity-60' : ''}" style="border-left: 6px solid ${match ? match.color : '#eee'}; animation-delay: ${i*0.02}s"><span class="font-bold uppercase flex items-center overflow-hidden cursor-pointer" onclick="openScorecard('${nameEscaped}')"><span class="text-[11px] font-black text-gray-500 w-8 shrink-0">${isInactive ? '-' : '#' + rank}</span>${getLogoHtml(p.name, '24px')} <span class="truncate text-[0.9rem] hover:underline">${p.name}</span></span><span class="flex items-center"><div class="score-pill ${p.thru === '-' || p.thru === '0' ? '' : scoreClass}">${p.thru === '-' || p.thru === '0' ? '-' : displayScore}</div></span><span class="text-right text-[12px] font-black text-gray-600 uppercase tabular-nums">${p.thru}</span></div>`;
             }).join('');
         }
 
@@ -862,7 +912,7 @@
         }
 
         function refreshData() {
-            const active = document.querySelector('nav button.active-tab')?.id;
+            const active = document.querySelector('nav .nav-pill.active-tab')?.id;
             if (active === 'tab-teams') fetchLeaderboard('team');
             if (active === 'tab-scores') fetchPlayerScores();
             if (active === 'tab-local-rules') fetchLocalRules();
