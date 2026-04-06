@@ -21,6 +21,7 @@
             -webkit-tap-highlight-color: transparent; 
             font-family: 'Inter', sans-serif;
             transition: background-color 0.5s ease;
+            overscroll-behavior-y: contain; /* Prevents default browser refresh to allow custom implementation */
         }
 
         header {
@@ -101,7 +102,7 @@
             width: 100%;
             font-variant-numeric: tabular-nums;
             min-width: 50px;
-            color: white; /* All scores have white text for contrast */
+            color: white; 
         }
         .score-under { background-color: var(--under-par-bg); } /* Red */
         .score-over { background-color: var(--over-par-bg); }  /* Black */
@@ -319,9 +320,51 @@
         
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Pull to Refresh Styles */
+        #ptr-indicator {
+            position: fixed;
+            top: -60px;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            pointer-events: none;
+            transition: transform 0.1s ease;
+        }
+        .ptr-icon {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+        }
+        .ptr-spinning {
+            animation: ptr-rotate 0.8s linear infinite;
+        }
+        @keyframes ptr-rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen text-gray-900 overflow-x-hidden">
+
+    <div id="ptr-indicator">
+        <div class="ptr-icon" id="ptr-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7" id="ptr-arrow" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" class="hidden" id="ptr-spinner-svg" />
+            </svg>
+        </div>
+    </div>
 
     <div id="loading-global" class="modal-overlay hidden">
         <div class="bg-white p-8 rounded-2xl shadow-2xl text-center">
@@ -513,6 +556,69 @@
             { id: "CLEARFIELD", name: "CLEARFIELD", url: "https://sportshub2-uploads.vnn-prod.zone/files/sites/1722/2017/07/26012144/12552.png", color: "#15803d" }, 
             { id: "ROY", name: "ROY", url: "https://cmsv2-assets.apptegy.net/uploads/25031/file/5081095/46ab505e-f612-4145-9e63-ec68e8782242.jpeg", color: "#eab308" } 
         ];
+
+        // Pull to Refresh Logic
+        let touchStart = 0;
+        let touchMove = 0;
+        let isPTR = false;
+        const PTR_THRESHOLD = 120;
+
+        window.addEventListener('touchstart', (e) => {
+            if (window.scrollY === 0) {
+                touchStart = e.touches[0].pageY;
+            }
+        });
+
+        window.addEventListener('touchmove', (e) => {
+            if (window.scrollY === 0 && e.touches[0].pageY > touchStart) {
+                touchMove = e.touches[0].pageY;
+                let diff = touchMove - touchStart;
+                if (diff > 20) {
+                    isPTR = true;
+                    let scroll = Math.min(diff / 2.5, PTR_THRESHOLD);
+                    document.getElementById('ptr-indicator').style.transform = `translateY(${scroll}px)`;
+                    document.getElementById('ptr-arrow').style.transform = `rotate(${Math.min(diff, 180)}deg)`;
+                    if (diff > PTR_THRESHOLD) {
+                        document.getElementById('ptr-icon').style.color = '#ef4444';
+                    } else {
+                        document.getElementById('ptr-icon').style.color = 'var(--primary-color)';
+                    }
+                }
+            }
+        });
+
+        window.addEventListener('touchend', async () => {
+            if (isPTR) {
+                let diff = touchMove - touchStart;
+                if (diff > PTR_THRESHOLD) {
+                    // Trigger Refresh
+                    document.getElementById('ptr-arrow').classList.add('hidden');
+                    document.getElementById('ptr-spinner-svg').classList.remove('hidden');
+                    document.getElementById('ptr-icon').classList.add('ptr-spinning');
+                    
+                    await refreshData();
+                    
+                    setTimeout(() => {
+                        resetPTR();
+                    }, 500);
+                } else {
+                    resetPTR();
+                }
+            }
+            isPTR = false;
+            touchStart = 0;
+            touchMove = 0;
+        });
+
+        function resetPTR() {
+            document.getElementById('ptr-indicator').style.transform = `translateY(0px)`;
+            setTimeout(() => {
+                document.getElementById('ptr-arrow').classList.remove('hidden');
+                document.getElementById('ptr-spinner-svg').classList.add('hidden');
+                document.getElementById('ptr-icon').classList.remove('ptr-spinning');
+                document.getElementById('ptr-arrow').style.transform = `rotate(0deg)`;
+            }, 300);
+        }
 
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible') {
@@ -789,10 +895,9 @@
             if (view === 'local-rules') fetchLocalRules();
         }
 
-        /* UPDATED COLOR LOGIC */
         function getScoreClass(toPar) {
-            if (toPar === 0) return 'score-even';     /* Green for Even */
-            return toPar < 0 ? 'score-under' : 'score-over'; /* Red for Under, Black for Over */
+            if (toPar === 0) return 'score-even';     
+            return toPar < 0 ? 'score-under' : 'score-over'; 
         }
 
         function formatToPar(val) {
@@ -913,9 +1018,10 @@
 
         function refreshData() {
             const active = document.querySelector('nav .nav-pill.active-tab')?.id;
-            if (active === 'tab-teams') fetchLeaderboard('team');
-            if (active === 'tab-scores') fetchPlayerScores();
-            if (active === 'tab-local-rules') fetchLocalRules();
+            if (active === 'tab-teams') return fetchLeaderboard('team');
+            if (active === 'tab-scores') return fetchPlayerScores();
+            if (active === 'tab-local-rules') return fetchLocalRules();
+            return Promise.resolve();
         }
 
         window.onload = () => { 
