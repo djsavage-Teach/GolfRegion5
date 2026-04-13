@@ -222,6 +222,10 @@
             outline: none;
             font-variant-numeric: tabular-nums;
         }
+        .starting-hole-highlight {
+            background-color: #fef3c7 !important; /* Light amber background */
+            box-shadow: inset 0 0 0 2px #f59e0b !important; /* Amber inner border */
+        }
 
         .syncing { background-color: #fef3c7; color: #b45309 !important; }
         .synced-success { background-color: transparent !important; color: #15803d !important; }
@@ -795,6 +799,10 @@
                 
                 const groupNames = await namesRes.json();
                 const allScoresRaw = await scoresRes.json();
+                const groupNumMatch = groupVal.match(/Group (\d+)/);
+                const groupIdx = parseInt(groupNumMatch[1]) - 1;
+                const headerRowIdx = 4 + (groupIdx * 5); 
+                const startingHole = parseInt(allScoresRaw[headerRowIdx] ? allScoresRaw[headerRowIdx][0] : 1);
 
                 tbody.innerHTML = groupNames.map(name => {
                     const pRow = allScoresRaw.find(r => String(r[2] || "").trim().toUpperCase() === name.trim().toUpperCase()) || [];
@@ -804,12 +812,14 @@
                     let rowHtml = `<tr><td class="sticky-col" ${stickyStyle}>${getLogoHtml(name)} ${name}</td>`;
                     for(let h=1; h<=9; h++) {
                         const score = pRow[h+2] || "";
-                        rowHtml += `<td><input type="number" class="score-input ${score ? 'synced-success' : ''}" value="${score}" data-player="${name}" data-hole="${h}" onblur="autoSaveScore(this)"></td>`;
+                        const isStart = (h === startingHole) ? 'starting-hole-highlight' : '';
+                        rowHtml += `<td class="${isStart}"><input type="number" class="score-input ${score ? 'synced-success' : ''}" value="${score}" data-player="${name}" data-hole="${h}" onblur="autoSaveScore(this)"></td>`;
                     }
                     rowHtml += `<td id="out-${idBase}" class="total-col">-</td>`;
                     for(let h=10; h<=18; h++) {
-                        const score = pRow[h+3] || ""; 
-                        rowHtml += `<td><input type="number" class="score-input ${score ? 'synced-success' : ''}" value="${score}" data-player="${name}" data-hole="${h}" onblur="autoSaveScore(this)"></td>`;
+                        const score = pRow[h+3] || "";
+                        const isStart = (h === startingHole) ? 'starting-hole-highlight' : ''; 
+                        rowHtml += `<td class="${isStart}"><input type="number" class="score-input ${score ? 'synced-success' : ''}" value="${score}" data-player="${name}" data-hole="${h}" onblur="autoSaveScore(this)"></td>`;
                     }
                     rowHtml += `<td id="in-${idBase}" class="total-col">-</td>`;
                     rowHtml += `<td id="tot-${idBase}" class="total-col">-</td>`;
