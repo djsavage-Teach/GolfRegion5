@@ -754,7 +754,7 @@
                     const groupHeaderIdx = 4 + (i * 5); 
                     const headerRow = rawData[groupHeaderIdx];
                     const startHole = (headerRow && headerRow[0]) ? headerRow[0] : "?";
-                    optionsHtml += `<option value="Group ${groupNum}">Group ${groupNum} - Starting Hole ${startHole}</option>`;
+                    optionsHtml += `<option value="Group ${groupNum}">Group ${groupNum} - Start Time ${startHole}</option>`;
                 }
                 select.innerHTML = optionsHtml;
                 const lastGroup = localStorage.getItem('last_group');
