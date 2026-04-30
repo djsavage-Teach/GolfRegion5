@@ -753,8 +753,8 @@
                     const groupNum = i + 1;
                     const groupHeaderIdx = 4 + (i * 5); 
                     const headerRow = rawData[groupHeaderIdx];
-                    const startHole = (headerRow && headerRow[0]) ? headerRow[0] : "?";
-                    optionsHtml += `<option value="Group ${groupNum}">Group ${groupNum} - Start Time ${startHole}</option>`;
+                    const startTime = (headerRow && headerRow[0]) ? headerRow[0] : "?";
+                    optionsHtml += `<option value="Group ${groupNum}">Group ${groupNum} - Start Time: ${startTime}</option>`;
                 }
                 select.innerHTML = optionsHtml;
                 const lastGroup = localStorage.getItem('last_group');
@@ -763,6 +763,22 @@
                     loadGroupScorecard(lastGroup);
                 }
             } catch (e) { select.innerHTML = '<option value="">-- Error --</option>'; }
+        }
+
+        // --- NEW: Robust Pace Helper ---
+        function addMinutesToStartTime(timeStr, mins) {
+            if (!timeStr || !timeStr.includes(':')) return "";
+            try {
+                const parts = timeStr.trim().split(' ');
+                const time = parts[0];
+                const modifier = parts[1] || 'AM'; // Default to AM if missing
+                let [hours, minutes] = time.split(':').map(Number);
+                if (modifier.toUpperCase() === 'PM' && hours < 12) hours += 12;
+                if (modifier.toUpperCase() === 'AM' && hours === 12) hours = 0;
+                const date = new Date();
+                date.setHours(hours, minutes + mins, 0);
+                return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+            } catch (e) { return ""; }
         }
 
         async function loadGroupScorecard(forcedGroupValue = null) {
@@ -784,12 +800,12 @@
             }
 
             loading.classList.remove('hidden');
-            document.getElementById('loading-sync-text').innerText = "Syncing Group Card...";
             placeholder.classList.add('hidden');
             table.classList.add('opacity-40'); 
 
             const groupNumMatch = groupVal.match(/Group (\d+)/);
-            const groupTab = groupNumMatch ? `G${groupNumMatch[1]}` : "G1";
+            const groupIdx = parseInt(groupNumMatch[1]) - 1;
+            const groupTab = `G${groupIdx + 1}`;
 
             try {
                 const [namesRes, scoresRes] = await Promise.all([
@@ -799,10 +815,13 @@
                 
                 const groupNames = await namesRes.json();
                 const allScoresRaw = await scoresRes.json();
-                const groupNumMatch = groupVal.match(/Group (\d+)/);
-                const groupIdx = parseInt(groupNumMatch[1]) - 1;
-                const headerRowIdx = 4 + (groupIdx * 5); 
-                const startingHole = parseInt(allScoresRaw[headerRowIdx] ? allScoresRaw[headerRowIdx][0] : 1);
+
+                // Get start time from specific cell in spreadsheet data
+                const headerIdx = 4 + (groupIdx * 5);
+                const startTimeStr = allScoresRaw[headerIdx] ? String(allScoresRaw[headerIdx][0]) : "";
+
+                // Remove existing pace rows before re-drawing
+                table.querySelectorAll('.pace-row').forEach(row => row.remove());
 
                 tbody.innerHTML = groupNames.map(name => {
                     const pRow = allScoresRaw.find(r => String(r[2] || "").trim().toUpperCase() === name.trim().toUpperCase()) || [];
@@ -812,14 +831,12 @@
                     let rowHtml = `<tr><td class="sticky-col" ${stickyStyle}>${getLogoHtml(name)} ${name}</td>`;
                     for(let h=1; h<=9; h++) {
                         const score = pRow[h+2] || "";
-                        const isStart = (h === 1) ? 'starting-hole-highlight' : '';
-                        rowHtml += `<td class="${isStart}"><input type="number" class="score-input ${score ? 'synced-success' : ''}" value="${score}" data-player="${name}" data-hole="${h}" onblur="autoSaveScore(this)"></td>`;
+                        rowHtml += `<td><input type="number" class="score-input ${score ? 'synced-success' : ''}" value="${score}" data-player="${name}" data-hole="${h}" onblur="autoSaveScore(this)"></td>`;
                     }
                     rowHtml += `<td id="out-${idBase}" class="total-col">-</td>`;
                     for(let h=10; h<=18; h++) {
                         const score = pRow[h+3] || "";
-                        const isStart = (h === 1) ? 'starting-hole-highlight' : ''; 
-                        rowHtml += `<td class="${isStart}"><input type="number" class="score-input ${score ? 'synced-success' : ''}" value="${score}" data-player="${name}" data-hole="${h}" onblur="autoSaveScore(this)"></td>`;
+                        rowHtml += `<td><input type="number" class="score-input ${score ? 'synced-success' : ''}" value="${score}" data-player="${name}" data-hole="${h}" onblur="autoSaveScore(this)"></td>`;
                     }
                     rowHtml += `<td id="in-${idBase}" class="total-col">-</td>`;
                     rowHtml += `<td id="tot-${idBase}" class="total-col">-</td>`;
@@ -827,9 +844,32 @@
                     return rowHtml;
                 }).join('');
 
+                // --- PACE ROW LOGIC ---
+                if (startTimeStr && startTimeStr !== "?") {
+                    const paceOffsets = {
+                        1: 17,  2: 31,  3: 45,  4: 60,  5: 72,  6: 87,  7: 101, 8: 115, 9: 132,
+                        10: 146, 11: 158, 12: 180, 13: 200, 14: 212, 15: 226, 16: 240, 17: 255, 18: 270
+                    };
+
+                    let paceHtml = `<tr class="pace-row bg-blue-50/70 border-t-2 border-blue-200">
+                        <td class="sticky-col !bg-blue-100 text-[9px] text-blue-700 font-black">PACE (EST. FINISH)</td>`;
+                    for (let h = 1; h <= 9; h++) {
+                        paceHtml += `<td class="text-[9px] font-bold text-blue-600">${addMinutesToStartTime(startTimeStr, paceOffsets[h])}</td>`;
+                    }
+                    paceHtml += `<td class="bg-blue-100/50"></td>`;
+                    for (let h = 10; h <= 18; h++) {
+                        paceHtml += `<td class="text-[9px] font-bold text-blue-600">${addMinutesToStartTime(startTimeStr, paceOffsets[h])}</td>`;
+                    }
+                    paceHtml += `<td class="bg-blue-100/50"></td><td class="bg-blue-100/50"></td></tr>`;
+                    
+                    // Add it as the first row of the body for high visibility
+                    tbody.insertAdjacentHTML('afterbegin', paceHtml);
+                }
+
                 loading.classList.add('hidden');
                 table.classList.remove('hidden', 'opacity-40');
                 groupNames.forEach(name => calculateTotals(name));
+
             } catch (e) { 
                 loading.classList.add('hidden');
                 placeholder.innerHTML = `<div class="text-red-500 font-bold p-16">Sync Error</div>`; 
