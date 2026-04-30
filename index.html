@@ -812,13 +812,13 @@
                     let rowHtml = `<tr><td class="sticky-col" ${stickyStyle}>${getLogoHtml(name)} ${name}</td>`;
                     for(let h=1; h<=9; h++) {
                         const score = pRow[h+2] || "";
-                        const isStart = (h === startingHole) ? 'starting-hole-highlight' : '';
+                        const isStart = (h === 1) ? 'starting-hole-highlight' : '';
                         rowHtml += `<td class="${isStart}"><input type="number" class="score-input ${score ? 'synced-success' : ''}" value="${score}" data-player="${name}" data-hole="${h}" onblur="autoSaveScore(this)"></td>`;
                     }
                     rowHtml += `<td id="out-${idBase}" class="total-col">-</td>`;
                     for(let h=10; h<=18; h++) {
                         const score = pRow[h+3] || "";
-                        const isStart = (h === startingHole) ? 'starting-hole-highlight' : ''; 
+                        const isStart = (h === 1) ? 'starting-hole-highlight' : ''; 
                         rowHtml += `<td class="${isStart}"><input type="number" class="score-input ${score ? 'synced-success' : ''}" value="${score}" data-player="${name}" data-hole="${h}" onblur="autoSaveScore(this)"></td>`;
                     }
                     rowHtml += `<td id="in-${idBase}" class="total-col">-</td>`;
