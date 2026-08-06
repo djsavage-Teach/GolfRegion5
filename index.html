@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Region 5 Live Scoring</title>
+    <title> Region 5 Live Scoring</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
@@ -223,8 +223,8 @@
             font-variant-numeric: tabular-nums;
         }
         .starting-hole-highlight {
-            background-color: #fef3c7 !important; /* Light amber background */
-            box-shadow: inset 0 0 0 2px #f59e0b !important; /* Amber inner border */
+            background-color: #FFFF00 !important; /* Bright Yellow Background */
+            box-shadow: inset 0 0 0 4px #000000 !important; /* Black inner border */
         }
 
         .syncing { background-color: #fef3c7; color: #b45309 !important; }
@@ -558,7 +558,7 @@
             { id: "FREMONT", name: "FREMONT", url: "https://assets.hometownticketing.com/clients/fremontathletics/logos/school_logo_c1182661.png", color: "#2563eb" }, 
             { id: "NORTHRIDGE", name: "NORTHRIDGE", url: "https://sportshub2-uploads.vnn-prod.zone/files/sites/429/2020/09/29204806/KnightVectorGraphic.png", color: "#991b1b" }, 
             { id: "CLEARFIELD", name: "CLEARFIELD", url: "https://sportshub2-uploads.vnn-prod.zone/files/sites/1722/2017/07/26012144/12552.png", color: "#15803d" }, 
-            { id: "ROY", name: "ROY", url: "https://cmsv2-assets.apptegy.net/uploads/25031/file/5081095/46ab505e-f612-4145-9e63-ec68e8782242.jpeg", color: "#eab308" } 
+            { id: "ROY", name: "ROY", url: "https://cmsv2-assets.apptegy.net/uploads/25031/file/5081095/46ab505e-f612-4145-9e63-ec68e8782242.jpeg", color: "#eab308" }, 
         ];
 
         // Pull to Refresh Logic
@@ -730,7 +730,7 @@
 
         async function buildGlobalGroupMap(data) {
             groupMap = {};
-            for (let i = 0; i < 16; i++) {
+            for (let i = 0; i < 33; i++) {
                 const playerStartRow = i * 5;
                 for (let r = 0; r < 4; r++) {
                     const rowData = data[playerStartRow + r];
@@ -749,12 +749,12 @@
                 const rawData = await res.json();
                 await buildGlobalGroupMap(rawData);
                 let optionsHtml = '<option value="">-- Select Group --</option>';
-                for(let i=0; i<16; i++) {
+                for(let i=0; i<33; i++) {
                     const groupNum = i + 1;
                     const groupHeaderIdx = 4 + (i * 5); 
                     const headerRow = rawData[groupHeaderIdx];
                     const startTime = (headerRow && headerRow[0]) ? headerRow[0] : "?";
-                    const labelText = String(startTime).includes(':') ? `Start Time: ${startTime}` : `Starting Hole: ${startTime}`;
+                const labelText = String(startTime).includes(':') ? `Start Time: ${startTime}` : `Starting Hole: ${startTime}`;
                 optionsHtml += `<option value="Group ${groupNum}">Group ${groupNum} - ${labelText}</option>`;
             }
                 select.innerHTML = optionsHtml;
@@ -820,7 +820,10 @@
                 // Get start time from specific cell in spreadsheet data
                 const headerIdx = 4 + (groupIdx * 5);
                 const startTimeStr = allScoresRaw[headerIdx] ? String(allScoresRaw[headerIdx][0]) : "";
-
+                
+                // Extracts the starting hole number from text (e.g., "10" or "Hole 10"), defaulting to 1
+                const startingHole = parseInt(startTimeStr.replace(/\D/g, '')) || 1;
+                
                 // Remove existing pace rows before re-drawing
                 table.querySelectorAll('.pace-row').forEach(row => row.remove());
 
@@ -832,12 +835,14 @@
                     let rowHtml = `<tr><td class="sticky-col" ${stickyStyle}>${getLogoHtml(name)} ${name}</td>`;
                     for(let h=1; h<=9; h++) {
                         const score = pRow[h+2] || "";
-                        rowHtml += `<td><input type="number" class="score-input ${score ? 'synced-success' : ''}" value="${score}" data-player="${name}" data-hole="${h}" onblur="autoSaveScore(this)"></td>`;
+                        const isStart = (h === startingHole) ? 'starting-hole-highlight' : '';
+                        rowHtml += `<td><input type="number" class="score-input ${isStart} ${score ? 'synced-success' : ''}" value="${score}" data-player="${name}" data-hole="${h}" onblur="autoSaveScore(this)"></td>`;
                     }
                     rowHtml += `<td id="out-${idBase}" class="total-col">-</td>`;
                     for(let h=10; h<=18; h++) {
                         const score = pRow[h+3] || "";
-                        rowHtml += `<td><input type="number" class="score-input ${score ? 'synced-success' : ''}" value="${score}" data-player="${name}" data-hole="${h}" onblur="autoSaveScore(this)"></td>`;
+                        const isStart = (h === startingHole) ? 'starting-hole-highlight' : '';
+                        rowHtml += `<td><input type="number" class="score-input ${isStart} ${score ? 'synced-success' : ''}" value="${score}" data-player="${name}" data-hole="${h}" onblur="autoSaveScore(this)"></td>`;
                     }
                     rowHtml += `<td id="in-${idBase}" class="total-col">-</td>`;
                     rowHtml += `<td id="tot-${idBase}" class="total-col">-</td>`;
@@ -847,25 +852,46 @@
 
                 // --- PACE ROW LOGIC ---
                 if (startTimeStr && startTimeStr !== "?") {
-                    const paceOffsets = {
-                        1: 15,  2: 33,  3: 48,  4:62,  5: 72,  6: 86,  7: 101, 8: 112, 9: 126,
-                        10: 149, 11: 160, 12: 175, 13: 194, 14: 208, 15: 223, 16: 238, 17: 253, 18: 270
-                    };
+      // 1. Determine base start time (8:08 AM for 'B' groups, 8:00 AM for standard, or use specific time string if present)
+      let baseStartTime = "8:00 AM";
+      if (startTimeStr.toUpperCase().includes("B")) {
+          baseStartTime = "8:08 AM";
+      } else if (startTimeStr.includes(":")) {
+          baseStartTime = startTimeStr;
+      }
 
-                    let paceHtml = `<tr class="pace-row bg-blue-50/70 border-t-2 border-blue-200">
-                        <td class="sticky-col !bg-blue-100 text-[9px] text-blue-700 font-black">PACE (EST. FINISH)</td>`;
-                    for (let h = 1; h <= 9; h++) {
-                        paceHtml += `<td class="text-[9px] font-bold text-blue-600">${addMinutesToStartTime(startTimeStr, paceOffsets[h])}</td>`;
-                    }
-                    paceHtml += `<td class="bg-blue-100/50"></td>`;
-                    for (let h = 10; h <= 18; h++) {
-                        paceHtml += `<td class="text-[9px] font-bold text-blue-600">${addMinutesToStartTime(startTimeStr, paceOffsets[h])}</td>`;
-                    }
-                    paceHtml += `<td class="bg-blue-100/50"></td><td class="bg-blue-100/50"></td></tr>`;
-                    
-                    // Add it as the first row of the body for high visibility
-                    tbody.insertAdjacentHTML('afterbegin', paceHtml);
-                }
+      // 2. Individual minutes allocated to complete each hole
+      const holeMinutes = {
+          1: 15, 2: 18, 3: 15, 4: 14, 5: 10, 6: 14, 7: 15, 8: 11, 9: 14,
+          10: 23, 11: 11, 12: 15, 13: 19, 14: 14, 15: 15, 16: 15, 17: 15, 18: 17
+      };
+
+      // 3. Helper to sum minutes in sequence from startingHole up to targetHole
+      const getPaceOffsetForHole = (targetHole) => {
+          let totalMins = 0;
+          let currentHole = startingHole;
+          while (true) {
+              totalMins += (holeMinutes[currentHole] || 15);
+              if (currentHole === targetHole) break;
+              currentHole = (currentHole % 18) + 1; // Wraps from 18 back to 1
+          }
+          return totalMins;
+      };
+
+      // 4. Generate pace row using calculated offsets
+      let paceHtml = `<tr class="pace-row bg-blue-50/70 border-t-2 border-blue-200">
+          <td class="sticky-col !bg-blue-100 text-[9px] text-blue-700 font-black">PACE (EST. FINISH)</td>`;
+      for (let h = 1; h <= 9; h++) {
+          paceHtml += `<td class="text-[9px] font-bold text-blue-600">${addMinutesToStartTime(baseStartTime, getPaceOffsetForHole(h))}</td>`;
+      }
+      paceHtml += `<td class="bg-blue-100/50"></td>`;
+      for (let h = 10; h <= 18; h++) {
+          paceHtml += `<td class="text-[9px] font-bold text-blue-600">${addMinutesToStartTime(baseStartTime, getPaceOffsetForHole(h))}</td>`;
+      }
+      paceHtml += `<td class="bg-blue-100/50"></td><td class="bg-blue-100/50"></td></tr>`;
+      
+      tbody.insertAdjacentHTML('afterbegin', paceHtml);
+  }
 
                 loading.classList.add('hidden');
                 table.classList.remove('hidden', 'opacity-40');
@@ -960,26 +986,63 @@
             const list = document.getElementById('teams-list');
             try {
                 if (cachedAllScores.length === 0) await fetchPlayerScores();
-                let teamResults = SCHOOLS.map(school => {
-                    const roster = cachedAllScores.filter(player => {
-                        const pName = String(player[2] || "").toUpperCase();
-                        return pName.includes(school.name) && !pName.includes("TEAM") && pName !== "PLAYER NAME";
-                    });
-                    const playerData = roster.map(p => ({ toPar: parseInt(p[25]), total: parseInt(p[23]), thru: String(p[24] || "0").trim().toUpperCase() })).filter(d => !isNaN(d.toPar) && !isNaN(d.total));
-                    playerData.sort((a, b) => a.toPar - b.toPar);
-                    const top4 = playerData.slice(0, 4);
-                    const allFinished = roster.length > 0 && roster.every(p => {
-                        const t = String(p[24] || "0").trim().toUpperCase();
-                        return t === '18' || t === 'F';
-                    });
-                    let teamToPar = top4.length >= 4 ? top4.reduce((sum, d) => sum + d.toPar, 0) : null;
-                    let teamTotalAbs = top4.length >= 4 ? top4.reduce((sum, d) => sum + d.total, 0) : null;
-                    const maxThru = roster.reduce((max, p) => {
-                        const t = parseInt(p[24]) || 0;
-                        return t > max ? t : max;
-                    }, 0);
-                    return { name: school.name + " TEAM", school, toPar: teamToPar, total: teamTotalAbs, thru: allFinished ? 'F' : maxThru, playerCount: roster.length, allFinished };
-                });
+                // Group players into distinct teams (e.g. BOX ELDER 1, BOX ELDER 2, or LAYTON)
+const teamMap = new Map();
+
+cachedAllScores.forEach(player => {
+    const pName = String(player[2] || "").toUpperCase();
+    if (!pName || pName.includes("TEAM") || pName === "PLAYER NAME" || pName === "PAR") return;
+
+    const school = SCHOOLS.find(s => pName.includes(s.name));
+    if (!school) return;
+
+    // Separate into Team 1, Team 2, or default single team name
+    let teamName = school.name;
+    if (pName.includes(school.name + " 1") || pName.includes(school.name + " #1")) {
+        teamName = school.name + " 1";
+    } else if (pName.includes(school.name + " 2") || pName.includes(school.name + " #2")) {
+        teamName = school.name + " 2";
+    }
+
+    if (!teamMap.has(teamName)) {
+        teamMap.set(teamName, { school, roster: [] });
+    }
+    teamMap.get(teamName).roster.push(player);
+});
+
+        let teamResults = Array.from(teamMap.entries()).map(([teamName, { school, roster }]) => {
+    const playerData = roster.map(p => ({
+        toPar: parseInt(p[25]),
+        total: parseInt(p[23]),
+        thru: String(p[24] || "0").trim().toUpperCase()
+    })).filter(d => !isNaN(d.toPar) && !isNaN(d.total));
+
+    playerData.sort((a, b) => a.toPar - b.toPar);
+    const top4 = playerData.slice(0, 4);
+
+    const allFinished = roster.length > 0 && roster.every(p => {
+        const t = String(p[24] || "0").trim().toUpperCase();
+        return t === '18' || t === 'F';
+    });
+
+    let teamToPar = top4.length >= 4 ? top4.reduce((sum, d) => sum + d.toPar, 0) : null;
+    let teamTotalAbs = top4.length >= 4 ? top4.reduce((sum, d) => sum + d.total, 0) : null;
+
+    const maxThru = roster.reduce((max, p) => {
+        const t = parseInt(p[24]) || 0;
+        return t > max ? t : max;
+    }, 0);
+
+    return {
+        name: teamName + " TEAM",
+        school,
+        toPar: teamToPar,
+        total: teamTotalAbs,
+        thru: allFinished ? 'F' : maxThru,
+        playerCount: roster.length,
+        allFinished
+    };
+});
                 teamResults.sort((a, b) => {
                     if (a.playerCount < 4 && b.playerCount < 4) return 0;
                     if (a.playerCount < 4) return 1;
