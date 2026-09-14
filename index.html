@@ -357,6 +357,14 @@
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
+      .sign-row td { background: #f8fafc; padding: 8px 10px; }
+   .sign-panel { display: flex; flex-wrap: wrap; gap: 10px; }
+   .sign-block { display: flex; gap: 6px; align-items: center; }
+   .sign-input { border: 1px solid #d1d5db; border-radius: 6px; padding: 4px 8px; font-size: 0.8rem; }
+   .sign-btn { background: #15803d; color: white; border: none; border-radius: 6px; padding: 5px 10px; font-size: 0.75rem; font-weight: 800; cursor: pointer; }
+   .sign-btn-final { background: #991b1b; }
+   .sign-done { font-size: 0.8rem; font-weight: 700; color: #15803d; }
+   .sign-locked-note { font-size: 0.75rem; font-weight: 700; color: #4b5563; margin-top: 4px; }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen text-gray-900 overflow-x-hidden">
@@ -549,6 +557,7 @@
         let currentTheme = localStorage.getItem('golf_theme') || "REGION";
         let warningShownThisSession = false;
         let cachedAllScores = [];
+        let currentGroupTab = null;
         let groupMap = {}; 
 
         const SCHOOLS = [
@@ -783,126 +792,178 @@
         }
 
         async function loadGroupScorecard(forcedGroupValue = null) {
-            const groupSelect = document.getElementById('groupSelect');
-            const groupVal = forcedGroupValue || groupSelect.value;
-            if (forcedGroupValue) groupSelect.value = forcedGroupValue;
-            localStorage.setItem('last_group', groupVal);
+    const groupSelect = document.getElementById('groupSelect');
+    const groupVal = forcedGroupValue || groupSelect.value;
+    if (forcedGroupValue) groupSelect.value = forcedGroupValue;
+    localStorage.setItem('last_group', groupVal);
 
-            const table = document.getElementById('scorecard-table');
-            const placeholder = document.getElementById('card-placeholder');
-            const loading = document.getElementById('card-loading');
-            const tbody = document.getElementById('player-rows');
-            
-            if (!groupVal) {
-                table.classList.add('hidden');
-                placeholder.classList.remove('hidden');
-                loading.classList.add('hidden');
-                return;
+    const table = document.getElementById('scorecard-table');
+    const placeholder = document.getElementById('card-placeholder');
+    const loading = document.getElementById('card-loading');
+    const tbody = document.getElementById('player-rows');
+
+    if (!groupVal) {
+        table.classList.add('hidden');
+        placeholder.classList.remove('hidden');
+        loading.classList.add('hidden');
+        return;
+    }
+
+    loading.classList.remove('hidden');
+    placeholder.classList.add('hidden');
+    table.classList.add('opacity-40');
+
+    const groupNumMatch = groupVal.match(/Group (\d+)/);
+    const groupIdx = parseInt(groupNumMatch[1]) - 1;
+    const groupTab = `G${groupIdx + 1}`;
+    currentGroupTab = groupTab;
+
+    try {
+        const [namesRes, scoresRes] = await Promise.all([
+            fetch(`${DEPLOY_URL}?action=getGroupPlayers&groupTab=${encodeURIComponent(groupTab)}`),
+            fetch(`${DEPLOY_URL}?action=getAllScores`)
+        ]);
+
+        const groupPlayers = await namesRes.json();
+        const allScoresRaw = await scoresRes.json();
+
+        const headerIdx = 4 + (groupIdx * 5);
+        const startTimeStr = allScoresRaw[headerIdx] ? String(allScoresRaw[headerIdx][0]) : "";
+        const startingHole = parseInt(startTimeStr.replace(/\D/g, '')) || 1;
+
+        table.querySelectorAll('.pace-row').forEach(row => row.remove());
+        table.querySelectorAll('.sign-row').forEach(row => row.remove());
+
+        let rowsHtml = '';
+        groupPlayers.forEach(player => {
+            const name = player.name;
+            const locked = player.locked;
+            const pRow = allScoresRaw.find(r => String(r[2] || "").trim().toUpperCase() === name.trim().toUpperCase()) || [];
+            const idBase = name.replace(/\s/g, '');
+            const match = SCHOOLS.find(s => name.toUpperCase().includes(s.name));
+            const stickyStyle = match ? `style="background-color: ${match.color}; color: white;"` : "";
+
+            let rowHtml = `<tr><td class="sticky-col" ${stickyStyle}>${getLogoHtml(name)} ${name}</td>`;
+            for (let h = 1; h <= 9; h++) {
+                const score = pRow[h + 2] || "";
+                const isStart = (h === startingHole) ? 'starting-hole-highlight' : '';
+                rowHtml += `<td><input type="number" class="score-input ${isStart} ${score ? 'synced-success' : ''}" value="${score}" data-player="${name}" data-hole="${h}" onblur="autoSaveScore(this)" ${locked ? 'disabled' : ''}></td>`;
+            }
+            rowHtml += `<td id="out-${idBase}" class="total-col">-</td>`;
+            for (let h = 10; h <= 18; h++) {
+                const score = pRow[h + 3] || "";
+                const isStart = (h === startingHole) ? 'starting-hole-highlight' : '';
+                rowHtml += `<td><input type="number" class="score-input ${isStart} ${score ? 'synced-success' : ''}" value="${score}" data-player="${name}" data-hole="${h}" onblur="autoSaveScore(this)" ${locked ? 'disabled' : ''}></td>`;
+            }
+            rowHtml += `<td id="in-${idBase}" class="total-col">-</td>`;
+            rowHtml += `<td id="tot-${idBase}" class="total-col">-</td>`;
+            rowHtml += `</tr>`;
+
+            const nameEscaped = name.replace(/'/g, "\\'");
+            const totalCols = 22;
+            let signHtml = `<tr class="sign-row"><td colspan="${totalCols}">`;
+            signHtml += `<div class="sign-panel">`;
+
+            if (player.scorerSignature) {
+                signHtml += `<div class="sign-done">✓ Scorer: ${player.scorerSignature}</div>`;
+            } else {
+                signHtml += `
+                    <div class="sign-block">
+                        <input type="text" placeholder="Scorer name" id="scorer-sign-${idBase}" class="sign-input">
+                        <button onclick="signPlayer('${nameEscaped}','scorer', ${locked})" class="sign-btn">Sign (Scorer)</button>
+                    </div>`;
             }
 
-            loading.classList.remove('hidden');
-            placeholder.classList.add('hidden');
-            table.classList.add('opacity-40'); 
-
-            const groupNumMatch = groupVal.match(/Group (\d+)/);
-            const groupIdx = parseInt(groupNumMatch[1]) - 1;
-            const groupTab = `G${groupIdx + 1}`;
-
-            try {
-                const [namesRes, scoresRes] = await Promise.all([
-                    fetch(`${DEPLOY_URL}?action=getGroupPlayers&groupTab=${encodeURIComponent(groupTab)}`),
-                    fetch(`${DEPLOY_URL}?action=getAllScores`)
-                ]);
-                
-                const groupNames = await namesRes.json();
-                const allScoresRaw = await scoresRes.json();
-
-                // Get start time from specific cell in spreadsheet data
-                const headerIdx = 4 + (groupIdx * 5);
-                const startTimeStr = allScoresRaw[headerIdx] ? String(allScoresRaw[headerIdx][0]) : "";
-                
-                // Extracts the starting hole number from text (e.g., "10" or "Hole 10"), defaulting to 1
-                const startingHole = parseInt(startTimeStr.replace(/\D/g, '')) || 1;
-                
-                // Remove existing pace rows before re-drawing
-                table.querySelectorAll('.pace-row').forEach(row => row.remove());
-
-                tbody.innerHTML = groupNames.map(name => {
-                    const pRow = allScoresRaw.find(r => String(r[2] || "").trim().toUpperCase() === name.trim().toUpperCase()) || [];
-                    const idBase = name.replace(/\s/g, '');
-                    const match = SCHOOLS.find(s => name.toUpperCase().includes(s.name));
-                    const stickyStyle = match ? `style="background-color: ${match.color}; color: white;"` : "";
-                    let rowHtml = `<tr><td class="sticky-col" ${stickyStyle}>${getLogoHtml(name)} ${name}</td>`;
-                    for(let h=1; h<=9; h++) {
-                        const score = pRow[h+2] || "";
-                        const isStart = (h === startingHole) ? 'starting-hole-highlight' : '';
-                        rowHtml += `<td><input type="number" class="score-input ${isStart} ${score ? 'synced-success' : ''}" value="${score}" data-player="${name}" data-hole="${h}" onblur="autoSaveScore(this)"></td>`;
-                    }
-                    rowHtml += `<td id="out-${idBase}" class="total-col">-</td>`;
-                    for(let h=10; h<=18; h++) {
-                        const score = pRow[h+3] || "";
-                        const isStart = (h === startingHole) ? 'starting-hole-highlight' : '';
-                        rowHtml += `<td><input type="number" class="score-input ${isStart} ${score ? 'synced-success' : ''}" value="${score}" data-player="${name}" data-hole="${h}" onblur="autoSaveScore(this)"></td>`;
-                    }
-                    rowHtml += `<td id="in-${idBase}" class="total-col">-</td>`;
-                    rowHtml += `<td id="tot-${idBase}" class="total-col">-</td>`;
-                    rowHtml += `</tr>`;
-                    return rowHtml;
-                }).join('');
-
-                // --- PACE ROW LOGIC ---
-                if (startTimeStr && startTimeStr !== "?") {
-      // 1. Determine base start time (8:08 AM for 'B' groups, 8:00 AM for standard, or use specific time string if present)
-      let baseStartTime = "8:00 AM";
-      if (startTimeStr.toUpperCase().includes("B")) {
-          baseStartTime = "8:08 AM";
-      } else if (startTimeStr.includes(":")) {
-          baseStartTime = startTimeStr;
-      }
-
-      // 2. Individual minutes allocated to complete each hole
-      const holeMinutes = {
-          1: 15, 2: 14, 3: 10, 4: 14, 5: 12, 6: 17, 7: 17, 8: 15, 9: 12,
-          10: 14, 11: 10, 12: 13, 13: 13, 14: 15, 15: 14, 16: 17, 17: 11, 18: 17
-      };
-
-      // 3. Helper to sum minutes in sequence from startingHole up to targetHole
-      const getPaceOffsetForHole = (targetHole) => {
-          let totalMins = 0;
-          let currentHole = startingHole;
-          while (true) {
-              totalMins += (holeMinutes[currentHole] || 15);
-              if (currentHole === targetHole) break;
-              currentHole = (currentHole % 18) + 1; // Wraps from 18 back to 1
-          }
-          return totalMins;
-      };
-
-      // 4. Generate pace row using calculated offsets
-      let paceHtml = `<tr class="pace-row bg-blue-50/70 border-t-2 border-blue-200">
-          <td class="sticky-col !bg-blue-100 text-[9px] text-blue-700 font-black">PACE (EST. FINISH)</td>`;
-      for (let h = 1; h <= 9; h++) {
-          paceHtml += `<td class="text-[9px] font-bold text-blue-600">${addMinutesToStartTime(baseStartTime, getPaceOffsetForHole(h))}</td>`;
-      }
-      paceHtml += `<td class="bg-blue-100/50"></td>`;
-      for (let h = 10; h <= 18; h++) {
-          paceHtml += `<td class="text-[9px] font-bold text-blue-600">${addMinutesToStartTime(baseStartTime, getPaceOffsetForHole(h))}</td>`;
-      }
-      paceHtml += `<td class="bg-blue-100/50"></td><td class="bg-blue-100/50"></td></tr>`;
-      
-      tbody.insertAdjacentHTML('afterbegin', paceHtml);
-  }
-
-                loading.classList.add('hidden');
-                table.classList.remove('hidden', 'opacity-40');
-                groupNames.forEach(name => calculateTotals(name));
-
-            } catch (e) { 
-                loading.classList.add('hidden');
-                placeholder.innerHTML = `<div class="text-red-500 font-bold p-16">Sync Error</div>`; 
-                placeholder.classList.remove('hidden');
+            if (player.playerSignature) {
+                signHtml += `<div class="sign-done">✓ Player: ${player.playerSignature}</div>`;
+            } else {
+                signHtml += `
+                    <div class="sign-block">
+                        <input type="text" placeholder="Player name" id="player-sign-${idBase}" class="sign-input">
+                        <button onclick="signPlayer('${nameEscaped}','player', ${locked})" class="sign-btn sign-btn-final">Sign${locked ? '' : ' & Lock'} (Player)</button>
+                    </div>`;
             }
+
+            signHtml += `</div>`;
+            if (locked && (!player.scorerSignature || !player.playerSignature)) {
+                signHtml += `<div class="sign-locked-note">🔒 Scores locked — waiting on remaining signature</div>`;
+            } else if (locked) {
+                signHtml += `<div class="sign-locked-note">🔒 Scores locked — fully signed</div>`;
+            }
+            signHtml += `</td></tr>`;
+
+            rowsHtml += rowHtml + signHtml;
+        });
+
+        tbody.innerHTML = rowsHtml;
+
+        if (startTimeStr && startTimeStr !== "?") {
+            let baseStartTime = "8:00 AM";
+            if (startTimeStr.toUpperCase().includes("B")) baseStartTime = "8:08 AM";
+            else if (startTimeStr.includes(":")) baseStartTime = startTimeStr;
+
+            const holeMinutes = {
+                1: 15, 2: 14, 3: 10, 4: 14, 5: 12, 6: 17, 7: 17, 8: 15, 9: 12,
+                10: 14, 11: 10, 12: 13, 13: 13, 14: 15, 15: 14, 16: 17, 17: 11, 18: 17
+            };
+            const getPaceOffsetForHole = (targetHole) => {
+                let totalMins = 0;
+                let currentHole = startingHole;
+                while (true) {
+                    totalMins += (holeMinutes[currentHole] || 15);
+                    if (currentHole === targetHole) break;
+                    currentHole = (currentHole % 18) + 1;
+                }
+                return totalMins;
+            };
+            let paceHtml = `<tr class="pace-row bg-blue-50/70 border-t-2 border-blue-200">
+                <td class="sticky-col !bg-blue-100 text-[9px] text-blue-700 font-black">PACE (EST. FINISH)</td>`;
+            for (let h = 1; h <= 9; h++) {
+                paceHtml += `<td class="text-[9px] font-bold text-blue-600">${addMinutesToStartTime(baseStartTime, getPaceOffsetForHole(h))}</td>`;
+            }
+            paceHtml += `<td class="bg-blue-100/50"></td>`;
+            for (let h = 10; h <= 18; h++) {
+                paceHtml += `<td class="text-[9px] font-bold text-blue-600">${addMinutesToStartTime(baseStartTime, getPaceOffsetForHole(h))}</td>`;
+            }
+            paceHtml += `<td class="bg-blue-100/50"></td><td class="bg-blue-100/50"></td></tr>`;
+            tbody.insertAdjacentHTML('afterbegin', paceHtml);
         }
+
+        loading.classList.add('hidden');
+        table.classList.remove('hidden', 'opacity-40');
+        groupPlayers.forEach(p => calculateTotals(p.name));
+
+    } catch (e) {
+        loading.classList.add('hidden');
+        placeholder.innerHTML = `<div class="text-red-500 font-bold p-16">Sync Error</div>`;
+        placeholder.classList.remove('hidden');
+    }
+}
+
+async function signPlayer(playerName, role, alreadyLocked) {
+    const idBase = playerName.replace(/\s/g, '');
+    const inputId = role === 'scorer' ? `scorer-sign-${idBase}` : `player-sign-${idBase}`;
+    const input = document.getElementById(inputId);
+    const signerName = input ? input.value.trim() : '';
+
+    if (!signerName) {
+        alert('Please type a name before signing.');
+        return;
+    }
+
+    if (!alreadyLocked) {
+        const confirmSign = confirm(`Signing will lock this scorecard — scores can't be edited afterward except by an admin in the spreadsheet. Continue?`);
+        if (!confirmSign) return;
+    }
+
+    try {
+        const payload = { action: 'sign', groupTab: currentGroupTab, playerName, role, signerName };
+        await fetch(DEPLOY_URL, { method: 'POST', body: JSON.stringify(payload), mode: 'no-cors' });
+        await loadGroupScorecard(localStorage.getItem('last_group'));
+    } catch (e) {
+        alert('Sign failed — check your connection and try again.');
+    }
+}
 
         async function autoSaveScore(input) {
             const player = input.getAttribute('data-player');
