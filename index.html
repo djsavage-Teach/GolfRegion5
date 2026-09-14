@@ -933,7 +933,8 @@
         table.classList.remove('hidden', 'opacity-40');
         groupPlayers.forEach(p => calculateTotals(p.name));
 
-    } catch (e) {
+        } catch (e) {
+        console.error("Scorecard load failed:", e);
         loading.classList.add('hidden');
         placeholder.innerHTML = `<div class="text-red-500 font-bold p-16">Sync Error</div>`;
         placeholder.classList.remove('hidden');
