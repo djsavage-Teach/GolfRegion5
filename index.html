@@ -567,6 +567,7 @@
         let cachedAllScores = [];
         let currentGroupTab = null;
         let signModalContext = {};
+        let scorecardRequestId = 0;
         let groupMap = {}; 
 
         const SCHOOLS = [
@@ -818,6 +819,8 @@
         return;
     }
 
+    const requestId = ++scorecardRequestId; // marks this call as the newest in-flight request
+
     loading.classList.remove('hidden');
     placeholder.classList.add('hidden');
     table.classList.add('opacity-40');
@@ -835,6 +838,8 @@
 
         const groupPlayers = await namesRes.json();
         const allScoresRaw = await scoresRes.json();
+
+        if (requestId !== scorecardRequestId) return; // a newer request already took over — drop this stale result
 
         const headerIdx = 4 + (groupIdx * 5);
         const startTimeStr = allScoresRaw[headerIdx] ? String(allScoresRaw[headerIdx][0]) : "";
@@ -914,8 +919,10 @@
         groupPlayers.forEach(p => calculateTotals(p.name));
 
         } catch (e) {
+        if (requestId !== scorecardRequestId) return; // stale failure — a newer request is already handling the screen
         console.error("Scorecard load failed:", e);
         loading.classList.add('hidden');
+        table.classList.add('hidden'); // don't leave an old table showing behind the error
         placeholder.innerHTML = `<div class="text-red-500 font-bold p-16">Sync Error</div>`;
         placeholder.classList.remove('hidden');
     }
@@ -974,6 +981,13 @@ async function submitSignature() {
         if (!confirmSign) return;
     }
 
+    const submitBtn = document.querySelector('#sign-modal-name-entry .sign-role-btn');
+    const originalBtnText = submitBtn ? submitBtn.innerText : '';
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'Submitting...';
+    }
+
     try {
         const payload = { action: 'sign', groupTab: currentGroupTab, playerName, role, signerName };
         await fetch(DEPLOY_URL, { method: 'POST', body: JSON.stringify(payload), mode: 'no-cors' });
@@ -981,6 +995,11 @@ async function submitSignature() {
         await loadGroupScorecard(localStorage.getItem('last_group'));
     } catch (e) {
         alert('Sign failed — check your connection and try again.');
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = originalBtnText;
+        }
     }
 }
 
