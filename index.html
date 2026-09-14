@@ -357,14 +357,9 @@
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
-      .sign-row td { background: #f8fafc; padding: 8px 10px; }
-   .sign-panel { display: flex; flex-wrap: wrap; gap: 10px; }
-   .sign-block { display: flex; gap: 6px; align-items: center; }
-   .sign-input { border: 1px solid #d1d5db; border-radius: 6px; padding: 4px 8px; font-size: 0.8rem; }
-   .sign-btn { background: #15803d; color: white; border: none; border-radius: 6px; padding: 5px 10px; font-size: 0.75rem; font-weight: 800; cursor: pointer; }
-   .sign-btn-final { background: #991b1b; }
-   .sign-done { font-size: 0.8rem; font-weight: 700; color: #15803d; }
-   .sign-locked-note { font-size: 0.75rem; font-weight: 700; color: #4b5563; margin-top: 4px; }
+      .sign-trigger-btn { background: transparent; border: none; font-size: 0.95rem; padding: 0 4px 0 0; cursor: pointer; line-height: 1; vertical-align: middle; }
+   .sign-role-btn { background: #15803d; color: white; border: none; border-radius: 8px; padding: 10px; font-weight: 800; cursor: pointer; }
+   .sign-role-btn-final { background: #991b1b; }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen text-gray-900 overflow-x-hidden">
@@ -422,6 +417,19 @@
                 <button onclick="document.getElementById('scorecard-modal').classList.add('hidden')" class="px-8 py-3 bg-stone-800 text-white font-black uppercase text-xs tracking-widest rounded-lg">Close View</button>
             </div>
         </div>
+    </div>
+
+    <div id="sign-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl p-6 w-full max-w-sm">
+        <h3 id="sign-modal-title" class="font-black text-lg mb-4"></h3>
+        <div id="sign-modal-status" class="text-xs text-gray-500 mb-3"></div>
+        <div id="sign-modal-role-select" class="space-y-2"></div>
+        <div id="sign-modal-name-entry" class="hidden space-y-3">
+          <input type="text" id="sign-modal-input" placeholder="Type name to sign" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+          <button onclick="submitSignature()" class="sign-role-btn w-full">Submit Signature</button>
+        </div>
+        <button onclick="closeSignModal()" class="mt-4 text-sm text-gray-400 underline block">Cancel</button>
+      </div>
     </div>
 
     <header id="main-header" class="glass-header text-white shadow-xl sticky top-0 z-50">
@@ -558,6 +566,7 @@
         let warningShownThisSession = false;
         let cachedAllScores = [];
         let currentGroupTab = null;
+        let signModalContext = {};
         let groupMap = {}; 
 
         const SCHOOLS = [
@@ -832,18 +841,25 @@
         const startingHole = parseInt(startTimeStr.replace(/\D/g, '')) || 1;
 
         table.querySelectorAll('.pace-row').forEach(row => row.remove());
-        table.querySelectorAll('.sign-row').forEach(row => row.remove());
 
-        let rowsHtml = '';
-        groupPlayers.forEach(player => {
+        tbody.innerHTML = groupPlayers.map(player => {
             const name = player.name;
             const locked = player.locked;
+            const scorerSig = player.scorerSignature || '';
+            const playerSig = player.playerSignature || '';
             const pRow = allScoresRaw.find(r => String(r[2] || "").trim().toUpperCase() === name.trim().toUpperCase()) || [];
             const idBase = name.replace(/\s/g, '');
             const match = SCHOOLS.find(s => name.toUpperCase().includes(s.name));
             const stickyStyle = match ? `style="background-color: ${match.color}; color: white;"` : "";
+            const nameEscaped = name.replace(/'/g, "\\'");
+            const scorerSigEscaped = scorerSig.replace(/'/g, "\\'");
+            const playerSigEscaped = playerSig.replace(/'/g, "\\'");
 
-            let rowHtml = `<tr><td class="sticky-col" ${stickyStyle}>${getLogoHtml(name)} ${name}</td>`;
+            const signIcon = locked ? '🔒' : '✍️';
+            const signTitle = locked ? `Scorer: ${scorerSig || '—'} | Player: ${playerSig || '—'}` : 'Sign and Submit';
+            const signBtn = `<button class="sign-trigger-btn" onclick="openSignModal('${nameEscaped}','${scorerSigEscaped}','${playerSigEscaped}')" title="${signTitle}">${signIcon}</button>`;
+
+            let rowHtml = `<tr><td class="sticky-col" ${stickyStyle}>${signBtn} ${getLogoHtml(name)} ${name}</td>`;
             for (let h = 1; h <= 9; h++) {
                 const score = pRow[h + 2] || "";
                 const isStart = (h === startingHole) ? 'starting-hole-highlight' : '';
@@ -858,44 +874,8 @@
             rowHtml += `<td id="in-${idBase}" class="total-col">-</td>`;
             rowHtml += `<td id="tot-${idBase}" class="total-col">-</td>`;
             rowHtml += `</tr>`;
-
-            const nameEscaped = name.replace(/'/g, "\\'");
-            const totalCols = 22;
-            let signHtml = `<tr class="sign-row"><td colspan="${totalCols}">`;
-            signHtml += `<div class="sign-panel">`;
-
-            if (player.scorerSignature) {
-                signHtml += `<div class="sign-done">✓ Scorer: ${player.scorerSignature}</div>`;
-            } else {
-                signHtml += `
-                    <div class="sign-block">
-                        <input type="text" placeholder="Scorer name" id="scorer-sign-${idBase}" class="sign-input">
-                        <button onclick="signPlayer('${nameEscaped}','scorer', ${locked})" class="sign-btn">Sign (Scorer)</button>
-                    </div>`;
-            }
-
-            if (player.playerSignature) {
-                signHtml += `<div class="sign-done">✓ Player: ${player.playerSignature}</div>`;
-            } else {
-                signHtml += `
-                    <div class="sign-block">
-                        <input type="text" placeholder="Player name" id="player-sign-${idBase}" class="sign-input">
-                        <button onclick="signPlayer('${nameEscaped}','player', ${locked})" class="sign-btn sign-btn-final">Sign${locked ? '' : ' & Lock'} (Player)</button>
-                    </div>`;
-            }
-
-            signHtml += `</div>`;
-            if (locked && (!player.scorerSignature || !player.playerSignature)) {
-                signHtml += `<div class="sign-locked-note">🔒 Scores locked — waiting on remaining signature</div>`;
-            } else if (locked) {
-                signHtml += `<div class="sign-locked-note">🔒 Scores locked — fully signed</div>`;
-            }
-            signHtml += `</td></tr>`;
-
-            rowsHtml += rowHtml + signHtml;
-        });
-
-        tbody.innerHTML = rowsHtml;
+            return rowHtml;
+        }).join('');
 
         if (startTimeStr && startTimeStr !== "?") {
             let baseStartTime = "8:00 AM";
@@ -941,16 +921,53 @@
     }
 }
 
-async function signPlayer(playerName, role, alreadyLocked) {
-    const idBase = playerName.replace(/\s/g, '');
-    const inputId = role === 'scorer' ? `scorer-sign-${idBase}` : `player-sign-${idBase}`;
-    const input = document.getElementById(inputId);
-    const signerName = input ? input.value.trim() : '';
-
-    if (!signerName) {
-        alert('Please type a name before signing.');
+function openSignModal(playerName, scorerSig, playerSig) {
+    if (scorerSig && playerSig) {
+        alert(`Already fully signed.\nScorer: ${scorerSig}\nPlayer: ${playerSig}`);
         return;
     }
+
+    signModalContext = { playerName, scorerSig, playerSig };
+
+    document.getElementById('sign-modal-title').innerText = playerName;
+
+    const lockedAlready = !!(scorerSig || playerSig);
+    document.getElementById('sign-modal-status').innerText = lockedAlready
+        ? 'Already locked — signing now just adds the remaining signature to the record.'
+        : '';
+
+    let roleButtonsHtml = '';
+    if (!scorerSig) roleButtonsHtml += `<button onclick="selectSignRole('scorer')" class="sign-role-btn w-full mb-2">I'm the Scorer</button>`;
+    if (!playerSig) roleButtonsHtml += `<button onclick="selectSignRole('player')" class="sign-role-btn sign-role-btn-final w-full">I'm the Player</button>`;
+    document.getElementById('sign-modal-role-select').innerHTML = roleButtonsHtml;
+    document.getElementById('sign-modal-role-select').classList.remove('hidden');
+    document.getElementById('sign-modal-name-entry').classList.add('hidden');
+    document.getElementById('sign-modal-input').value = '';
+
+    document.getElementById('sign-modal').classList.remove('hidden');
+}
+
+function selectSignRole(role) {
+    signModalContext.role = role;
+    document.getElementById('sign-modal-role-select').classList.add('hidden');
+    document.getElementById('sign-modal-name-entry').classList.remove('hidden');
+    document.getElementById('sign-modal-input').focus();
+}
+
+function closeSignModal() {
+    document.getElementById('sign-modal').classList.add('hidden');
+}
+
+async function submitSignature() {
+    const input = document.getElementById('sign-modal-input');
+    const signerName = input.value.trim();
+    if (!signerName) {
+        alert('Please type a name.');
+        return;
+    }
+
+    const { playerName, role, scorerSig, playerSig } = signModalContext;
+    const alreadyLocked = !!(scorerSig || playerSig);
 
     if (!alreadyLocked) {
         const confirmSign = confirm(`Signing will lock this scorecard — scores can't be edited afterward except by an admin in the spreadsheet. Continue?`);
@@ -960,6 +977,7 @@ async function signPlayer(playerName, role, alreadyLocked) {
     try {
         const payload = { action: 'sign', groupTab: currentGroupTab, playerName, role, signerName };
         await fetch(DEPLOY_URL, { method: 'POST', body: JSON.stringify(payload), mode: 'no-cors' });
+        closeSignModal();
         await loadGroupScorecard(localStorage.getItem('last_group'));
     } catch (e) {
         alert('Sign failed — check your connection and try again.');
