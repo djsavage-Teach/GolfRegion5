@@ -764,7 +764,7 @@
         async function initGroupDropdown() {
             const select = document.getElementById('groupSelect');
             try {
-                const res = await fetch(`${DEPLOY_URL}?action=getAllScores`);
+                const res = await fetch(`${DEPLOY_URL}?action=getAllScores&_=${Date.now()}`, { cache: 'no-store' });
                 const rawData = await res.json();
                 await buildGlobalGroupMap(rawData);
                 let optionsHtml = '<option value="">-- Select Group --</option>';
@@ -832,8 +832,8 @@
 
     try {
         const [namesRes, scoresRes] = await Promise.all([
-            fetch(`${DEPLOY_URL}?action=getGroupPlayers&groupTab=${encodeURIComponent(groupTab)}`),
-            fetch(`${DEPLOY_URL}?action=getAllScores`)
+            fetch(`${DEPLOY_URL}?action=getGroupPlayers&groupTab=${encodeURIComponent(groupTab)}&_=${Date.now()}`, { cache: 'no-store' }),
+            fetch(`${DEPLOY_URL}?action=getAllScores&_=${Date.now()}`, { cache: 'no-store' })
         ]);
 
         const groupPlayers = await namesRes.json();
@@ -1044,7 +1044,7 @@ async function submitSignature() {
             const container = document.getElementById('local-rules-container');
             container.innerHTML = `<div class="p-10 text-center opacity-50 italic">loading local rules...</div>`;
             try {
-                const res = await fetch(`${DEPLOY_URL}?action=getLocalRules`);
+                const res = await fetch(`${DEPLOY_URL}?action=getLocalRules&_=${Date.now()}`, { cache: 'no-store' });
                 const rules = await res.json();
                 if (rules && rules.length > 0) {
                     container.innerHTML = rules.map(rule => `<div class="rule-card row-animate">${rule}</div>`).join('');
@@ -1172,7 +1172,7 @@ cachedAllScores.forEach(player => {
 
         async function fetchPlayerScores() {
             try {
-                const res = await fetch(`${DEPLOY_URL}?action=getAllScores`);
+                const res = await fetch(`${DEPLOY_URL}?action=getAllScores&_=${Date.now()}`, { cache: 'no-store' });
                 cachedAllScores = await res.json();
                 await buildGlobalGroupMap(cachedAllScores);
                 renderPlayerScores();
