@@ -419,6 +419,25 @@
         </div>
     </div>
 
+    <div id="donate-modal" class="modal-overlay hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center animate-fadeInUp">
+            <div class="w-16 h-16 bg-green-100 text-green-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+            </div>
+            <p class="text-sm text-gray-600 font-medium mb-5 leading-relaxed">
+                The Region 5 Live Scoreboard has been brought to you thanks to Box Elder High School, consider a small donation to say thanks.
+            </p>
+            <a href="https://sfnd.io/m2yxj" target="_blank" rel="noopener" onclick="closeDonateModal()" class="block w-full bg-green-700 text-white font-black py-4 rounded-xl shadow-lg hover:bg-green-800 active:scale-95 transition-all uppercase tracking-widest">
+                Donate
+            </a>
+            <button onclick="closeDonateModal()" class="mt-4 text-xs text-gray-400 underline">
+                No thanks
+            </button>
+        </div>
+    </div>
+
     <div id="sign-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div class="bg-white rounded-2xl p-6 w-full max-w-sm">
         <h3 id="sign-modal-title" class="font-black text-lg mb-4"></h3>
@@ -1056,10 +1075,18 @@ async function submitSignature() {
             }
         }
 
+        function closeDonateModal() {
+            document.getElementById('donate-modal').classList.add('hidden');
+        }
+
         function setView(view) {
             localStorage.setItem('last_view', view);
             if (view === 'input' && !warningShownThisSession) {
                 document.getElementById('warning-modal').classList.remove('hidden');
+            }
+            if (view === 'scores' && !localStorage.getItem('donate_popup_shown')) {
+                document.getElementById('donate-modal').classList.remove('hidden');
+                localStorage.setItem('donate_popup_shown', 'true');
             }
             document.querySelectorAll('.view').forEach(el => el.classList.add('hidden'));
             document.getElementById(`view-${view}`).classList.remove('hidden');
